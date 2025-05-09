@@ -8,7 +8,8 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Scaffold(
       body: Center(
-        child: TimerButton(), // UI component imported here
+        child:
+            TimerUI(), // Fixed: class name should match what's in timer_ui.dart
       ),
     );
   }

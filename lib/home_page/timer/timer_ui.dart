@@ -17,11 +17,7 @@ class _TimerUIState extends State<TimerUI> {
   @override
   void initState() {
     super.initState();
-    _logic = TimerLogic(
-      onTick: () {
-        if (mounted) setState(() {});
-      },
-    );
+    _logic = TimerLogic();
   }
 
   void _onTapDown(TapDownDetails details) {
@@ -69,12 +65,20 @@ class _TimerUIState extends State<TimerUI> {
         alignment: Alignment.center,
         width: _timerStarted ? double.infinity : 200,
         height: _timerStarted ? double.infinity : 200,
-        child: Text(
-          _logic.currentTimeString,
-          style: TextStyle(
-            fontSize: _timerStarted ? 64 : 32,
-            color: _timerStarted ? Colors.white : Colors.black87,
-          ),
+        child: ValueListenableBuilder<int>(
+          valueListenable: _logic.timeNotifier,
+          builder: (context, milliseconds, _) {
+            final seconds = (milliseconds / 1000).floor();
+            final ms = (milliseconds % 1000) ~/ 10;
+            final timeString = '$seconds.${ms.toString().padLeft(2, '0')}';
+            return Text(
+              timeString,
+              style: TextStyle(
+                fontSize: _timerStarted ? 64 : 32,
+                color: _timerStarted ? Colors.white : Colors.black87,
+              ),
+            );
+          },
         ),
       ),
     );
