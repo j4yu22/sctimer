@@ -17,7 +17,6 @@ class TimerLogic {
   void _updateState(TimerState newState) {
     _state = newState;
     stateNotifier.value = newState;
-    // TODO: Notify UI or Listeners about change in state
   }
 
   late Stopwatch _stopwatch;
