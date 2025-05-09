@@ -6,11 +6,17 @@ enum TimerState {
 }
 
 class TimerLogic {
+  final ValueNotifier<int> timeNotifier = ValueNotifier<int>(0);
+  final ValueNotifier<TimerState> stateNotifier = ValueNotifier<TimerState>(TimerState.idle);
+  // Used to notify other widgets to update timer values in real time
+  // UI can can listen to this to automatically update displayed time without manual calls
+
   TimerState _state = TimerState.idle;
   TimerState get currentState => _state;
 
   void _updateState(TimerState newState) {
     _state = newState;
+    stateNotifier.value = newState;
     // TODO: Notify UI or Listeners about change in state
   }
 
@@ -26,19 +32,16 @@ class TimerLogic {
   }
 
   void start() {
-    if (_state != TimerState.idle) return;
-
     _stopwatch.start();
-    _tickTimer = Timer.periodic(const Duration(milliseconds: 10), (_) {
-      _onTick;
-    });
+    _updateState(TimerState.running);
+    _tickTimer = Timer.periodic(const Duration(milliseconds: 10), (_) => _onTick());
   }
 
   void stop() {
     _stopwatch.stop();
+    _updateState(TimerState.stopped);
     _milliseconds = _stopwatch.elapsedMilliseconds;
     timeNotifier.value = _milliseconds;
-    _updateState(TimerState.stopped);
   }
 
   void reset() {
@@ -54,10 +57,6 @@ class TimerLogic {
     _updateState(TimerState.idle);
   }
 
-  final ValueNotifier<int> timeNotifier = ValueNotifier<int>(0);
-  // Used to notify other widgets to update timer values in real time
-  // UI can can listen to this to automatically update displayed time without manual calls
-
   void _onTick() {
     _milliseconds = _stopwatch.elapsedMilliseconds;
     timeNotifier.value = _milliseconds;
@@ -68,9 +67,11 @@ class TimerLogic {
   void endTimer() {
     _tickTimer?.cancel();
     timeNotifier.dispose();
+    stateNotifier.dispose();
   //   Used to safely shut down timer instance & listeners
   //   Call when app no longer needs timer (leaving the screen, shutting down app, etc)
   }
+
   // Constructor
   TimerLogic() {
     _stopwatch = Stopwatch();
