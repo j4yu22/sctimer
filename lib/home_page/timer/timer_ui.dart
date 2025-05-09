@@ -12,6 +12,8 @@ class _TimerUIState extends State<TimerUI> {
   bool _primed = false;
   bool _timerStarted = false;
   Duration _holdDuration = const Duration(milliseconds: 800);
+  DateTime? _timerStartTime;
+  final Duration _minRunTime = const Duration(milliseconds: 200);
   late TimerLogic _logic;
 
   @override
@@ -33,6 +35,9 @@ class _TimerUIState extends State<TimerUI> {
     if (_primed && !_timerStarted) {
       setState(() {
         _timerStarted = true;
+        _primed = false;
+        _timerStartTime = DateTime.now();
+        debugPrint('started');
         _logic.start();
       });
     }
@@ -40,11 +45,16 @@ class _TimerUIState extends State<TimerUI> {
 
   void _onTap() {
     if (_timerStarted) {
-      setState(() {
-        _timerStarted = false;
-        _primed = false;
-        _logic.stop();
-      });
+      final now = DateTime.now();
+      if (_timerStartTime != null &&
+          now.difference(_timerStartTime!) >= _minRunTime) {
+        setState(() {
+          _timerStarted = false;
+          _primed = false;
+          debugPrint('stopped');
+          _logic.stop();
+        });
+      }
     }
   }
 
