@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import '../header/header_ui.dart';
+import '../footer/footer_ui.dart';
+import 'scramble/scramble_ui.dart';
 import 'timer/timer_ui.dart';
+import 'time_display/time_display_ui.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -7,9 +11,17 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: Center(
-        child:
-            TimerUI(), // Fixed: class name should match what's in timer_ui.dart
+      body: SafeArea(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            HeaderUI(),
+            ScrambleUI(),
+            TimerUI(),
+            TimeDisplayUI(),
+            FooterUI(),
+          ],
+        ),
       ),
     );
   }
