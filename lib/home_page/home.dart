@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sctimer/footer/footer_ui.dart';
 import 'timer/timer_ui.dart';
 
 class HomePage extends StatelessWidget {
@@ -6,10 +7,18 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child:
-            TimerUI(), // Fixed: class name should match what's in timer_ui.dart
+    return PopScope( 
+      //The PopScope object for this project disables the android back button which causes some weird behavior. 
+      //It will be changed a little bit in the future to be more useful.
+      //It is also present on all the other pages for the same reason 
+      canPop: false,
+      child: Scaffold(
+        body: Column(
+          children: [
+            TimerUI(),
+            Footer(),
+          ], // Fixed: class name should match what's in timer_ui.dart
+        ),
       ),
     );
   }

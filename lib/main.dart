@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'home_page/home.dart';
+import '../settings_page/settings.dart';
+import '../stats_page/stats.dart';
+import '../graphs_page/graphs.dart';
+import '../times_page/times.dart';
 
 void main() {
   runApp(const MyApp());
@@ -10,6 +14,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(home: HomePage());
+    return MaterialApp(
+      routes: {
+        '/': (context) => const HomePage(),
+        '/times': (context) => const TimesPage(),
+        '/graphs': (context) => const GraphsPage(),
+        '/stats': (context) => const StatsPage(),
+        '/settings': (context) => const SettingsPage(),
+      },
+      initialRoute: '/',
+    );
   }
 }
