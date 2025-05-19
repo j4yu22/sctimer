@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sctimer/footer/footer_ui.dart';
 import 'timer/timer_ui.dart';
+import 'time_display/time_display_ui.dart';
+import 'scramble/scramble_ui.dart';
+import '../header/header_ui.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});

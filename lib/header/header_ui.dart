@@ -17,6 +17,7 @@ class HeaderUI extends StatelessWidget {
             iconSize: 28,
             onPressed: () {
               // Handle settings press
+              Navigator.pushNamed(context, '/settings');
             },
           ),
 
