@@ -6,7 +6,7 @@ class ScrambleUI extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: Colors.grey)),
       ),
