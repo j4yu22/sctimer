@@ -11,7 +11,7 @@ class TimerUI extends StatefulWidget {
 class _TimerUIState extends State<TimerUI> {
   bool _primed = false;
   bool _timerStarted = false;
-  Duration _holdDuration = const Duration(milliseconds: 800);
+  final Duration _holdDuration = const Duration(milliseconds: 800);
   DateTime? _timerStartTime;
   final Duration _minRunTime = const Duration(milliseconds: 200);
   late TimerLogic _logic;
