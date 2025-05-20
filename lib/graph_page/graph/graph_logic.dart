@@ -10,8 +10,8 @@ class SolveData {
 
 class GraphPage extends StatefulWidget {
   final List<SolveData> solveData;
-
-  const GraphPage({super.key, required this.solveData});
+  final ZoomPanBehavior zoomController;
+  const GraphPage({super.key, required this.solveData, required this.zoomController});
 
   @override
   GraphPageState createState() => GraphPageState();
@@ -23,11 +23,7 @@ class GraphPageState extends State<GraphPage> {
   @override
   void initState() {
     super.initState();
-    _zoomPanBehavior = ZoomPanBehavior(
-      enablePinching: true,
-      enablePanning: true,
-      zoomMode: ZoomMode.xy,
-    );
+    _zoomPanBehavior = widget.zoomController;
   }
 
   @override
@@ -36,12 +32,6 @@ class GraphPageState extends State<GraphPage> {
       appBar: AppBar(title: const Text("Rubik's Cube Solve Times")),
       body: Column(
         children: [
-          ElevatedButton(
-            onPressed: () {
-              _zoomPanBehavior.reset();
-            },
-            child: const Text('Reset Zoom'),
-          ),
           Expanded(
             child: SfCartesianChart(
               title: ChartTitle(text: 'Solve Times Over Date'),
