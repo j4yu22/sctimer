@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'graph_logic.dart';
-// import 'solve_data.path';
+// import 'path to solve data';
 
 
 final ZoomPanBehavior zoomController = ZoomPanBehavior(
