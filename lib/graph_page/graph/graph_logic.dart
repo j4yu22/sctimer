@@ -2,10 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class SolveData {
+  final String puzzle;
+  final String category;
+  final double timeMs;
   final DateTime date;
-  final double timeInMS;
+  final String scramble;
+  final int penalty;
+  final String comment;
 
-  SolveData(this.date, this.timeInMS);
+  SolveData({
+    required this.puzzle,
+    required this.category,
+    required this.timeMs,
+    required this.date,
+    required this.scramble,
+    required this.penalty,
+    required this.comment,
+  });
 }
 
 class GraphPage extends StatefulWidget {
@@ -41,7 +54,7 @@ class GraphPageState extends State<GraphPage> {
                 LineSeries<SolveData, DateTime>(
                   dataSource: widget.solveData,
                   xValueMapper: (data, _) => data.date,
-                  yValueMapper: (data, _) => data.timeInMS,
+                  yValueMapper: (data, _) => data.timeMs,
                   name: 'Solve Time (ms)',
                 )
               ],

@@ -83,7 +83,7 @@ class GraphUI extends StatelessWidget {
                     LineSeries<SolveData, DateTime>(
                       dataSource: solveData,
                       xValueMapper: (data, _) => data.date,
-                      yValueMapper: (data, _) => data.timeInMS,
+                      yValueMapper: (data, _) => data.timeMs,
                       name: 'Solve Time',
                       dataLabelSettings: const DataLabelSettings(isVisible: false),
                       markerSettings: const MarkerSettings(isVisible: true),
