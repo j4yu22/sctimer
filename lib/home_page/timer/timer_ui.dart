@@ -9,9 +9,10 @@ class TimerUI extends StatefulWidget {
 }
 
 class _TimerUIState extends State<TimerUI> {
+  bool _isHolding = false;
   bool _primed = false;
   bool _timerStarted = false;
-  final Duration _holdDuration = const Duration(milliseconds: 800);
+  final Duration _holdDuration = const Duration(milliseconds: 300);
   DateTime? _timerStartTime;
   final Duration _minRunTime = const Duration(milliseconds: 200);
   late TimerLogic _logic;
@@ -23,27 +24,32 @@ class _TimerUIState extends State<TimerUI> {
   }
 
   void _onTapDown(TapDownDetails details) {
+    _isHolding = true;
     _primed = false;
     Future.delayed(_holdDuration, () {
-      if (mounted && !_timerStarted) {
-        setState(() => _primed = true);
+      if (mounted && !_timerStarted && _isHolding) {
+        setState(() {
+          _primed = true;
+          _logic.reset(); // reset timer on hold
+        });
       }
     });
   }
 
   void _onTapUp(TapUpDetails details) {
+    _isHolding = false;
     if (_primed && !_timerStarted) {
       setState(() {
         _timerStarted = true;
         _primed = false;
         _timerStartTime = DateTime.now();
-        debugPrint('started');
         _logic.start();
       });
     }
   }
 
   void _onTap() {
+    _isHolding = false;
     if (_timerStarted) {
       final now = DateTime.now();
       if (_timerStartTime != null &&
@@ -51,7 +57,6 @@ class _TimerUIState extends State<TimerUI> {
         setState(() {
           _timerStarted = false;
           _primed = false;
-          debugPrint('stopped');
           _logic.stop();
         });
       }
@@ -60,11 +65,9 @@ class _TimerUIState extends State<TimerUI> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final squareSize = constraints.maxWidth; // Full screen width
-
-        return GestureDetector(
+    return Scaffold(
+      body: SizedBox.expand(
+        child: GestureDetector(
           onTapDown: _onTapDown,
           onTapUp: _onTapUp,
           onTap: _onTap,
@@ -77,8 +80,6 @@ class _TimerUIState extends State<TimerUI> {
                     ? Colors.yellow
                     : Colors.grey[400],
             alignment: Alignment.center,
-            width: squareSize,
-            height: squareSize, // make it a square
             child: ValueListenableBuilder<int>(
               valueListenable: _logic.timeNotifier,
               builder: (context, milliseconds, _) {
@@ -95,8 +96,8 @@ class _TimerUIState extends State<TimerUI> {
               },
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

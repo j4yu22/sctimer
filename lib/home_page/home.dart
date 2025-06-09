@@ -11,9 +11,6 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      //The PopScope object for this project disables the android back button which causes some weird behavior.
-      //It will be changed a little bit in the future to be more useful.
-      //It is also present on all the other pages for the same reason
       canPop: false,
       child: SafeArea(
         child: Scaffold(
@@ -21,10 +18,10 @@ class HomePage extends StatelessWidget {
             children: [
               HeaderUI(),
               ScrambleUI(),
-              TimerUI(),
+              Expanded(child: TimerUI()), // Fills remaining space
               TimeDisplayUI(),
               Footer(),
-            ], // Fixed: class name should match what's in timer_ui.dart
+            ],
           ),
         ),
       ),
