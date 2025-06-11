@@ -1,0 +1,47 @@
+// pull all solves from database
+final db = await openDatabase('database_link.db');
+final result = await db.rawQuery ('''
+    "SELECT solve_time, date_time
+    FROM solve
+    ORDER BY time ASC;"
+''');
+
+// Dart get data from SQL query
+List<double> solveTimes = [];
+List<DateTime> solveDates = [];
+
+for (var row in result) {
+    solveTimes.add(row['solve_time'] as double);
+    solveDates.add(row['date_time'] as DateTime);
+}
+
+// calculate rolling average function
+List<double> calculateRollingAverage(List<double> times, int windowSize) {
+  List<double> averages = [];
+
+  for (int i = 0; i < times.length; i++) {
+    if (i + 1 < windowSize) {
+      averages.add(null);
+    } else {
+      final window = times.sublist(i + 1 - windowSize, i + 1);
+      final avg = window.reduce((a, b) => a + b) / windowSize;
+      averages.add(avg);
+    }
+  }
+  return averages;
+}
+
+// get ao5 and ao12 lists
+List<double> ao5list = calculateRollingAverage(solveTimes, 5);
+List<double> ao12list = calculateRollingAverage(solveTimes, 12;
+
+// pull all solves from database by specified session
+final result = await db.rawQuery (
+    '''
+    "SELECT solve_time, date_time
+    FROM solve
+    WHERE session_id = ?
+    ORDER BY time ASC;"
+    ''',
+    [selectedSessionID]
+);
