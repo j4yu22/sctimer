@@ -11,6 +11,7 @@ class DatabaseHelper {
     if (_database != null) return _database!;
     _database = await _initDB('responses.db');
     print('Database initialized at: ${await getDatabasesPath()}/responses.db');
+    await _ensureDefaultData();
     return _database!;
   }
 
@@ -25,21 +26,18 @@ class DatabaseHelper {
     );
   }
 
-  // Enable foreign key support
   Future _onConfigure(Database db) async {
     await db.execute('PRAGMA foreign_keys = ON');
     print('Foreign keys enabled');
   }
 
   Future _createDB(Database db, int version) async {
-    // Create puzzle table
     await db.execute('''
     CREATE TABLE puzzle (
       puzzle_id INTEGER PRIMARY KEY,
       puzzle_name TEXT NOT NULL
     )
     ''');
-    // Create session table
     await db.execute('''
     CREATE TABLE session (
       session_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,7 +46,6 @@ class DatabaseHelper {
       FOREIGN KEY (puzzle_id) REFERENCES puzzle (puzzle_id)
     )
     ''');
-    // Create solve table
     await db.execute('''
     CREATE TABLE solve (
       solve_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,14 +61,12 @@ class DatabaseHelper {
       FOREIGN KEY (session_id) REFERENCES session (session_id)
     )
     ''');
-    // Create tag table
     await db.execute('''
     CREATE TABLE tag (
       tag_id INTEGER PRIMARY KEY AUTOINCREMENT,
       tag_name TEXT NOT NULL
     )
     ''');
-    // Create solve_has_tag table
     await db.execute('''
     CREATE TABLE solve_has_tag (
       solve_id INTEGER NOT NULL,
@@ -84,7 +79,29 @@ class DatabaseHelper {
     print('Tables created: puzzle, session, solve, tag, solve_has_tag');
   }
 
-  // Insert a puzzle
+  Future<void> _ensureDefaultData() async {
+    final db = await database;
+    // Insert default puzzles
+    await db.insert('puzzle', {
+      'puzzle_id': 1,
+      'puzzle_name': '3x3 Cube',
+    }, conflictAlgorithm: ConflictAlgorithm.ignore);
+    await db.insert('puzzle', {
+      'puzzle_id': 2,
+      'puzzle_name': '2x2 Cube',
+    }, conflictAlgorithm: ConflictAlgorithm.ignore);
+    // Check if sessions exist
+    final result = await db.rawQuery('SELECT COUNT(*) as count FROM session');
+    final sessionCount = result.first['count'] as int;
+    if (sessionCount == 0) {
+      await db.insert('session', {
+        'puzzle_id': 1,
+        'session_name': 'Default 3x3',
+      }, conflictAlgorithm: ConflictAlgorithm.ignore);
+      print('Inserted default session: Default 3x3');
+    }
+  }
+
   Future<int> insertPuzzle(Map<String, dynamic> puzzle) async {
     final db = await database;
     final id = await db.insert(
@@ -96,7 +113,6 @@ class DatabaseHelper {
     return id;
   }
 
-  // Get all puzzles
   Future<List<Map<String, dynamic>>> getPuzzles() async {
     final db = await database;
     final puzzles = await db.query('puzzle', orderBy: 'puzzle_name ASC');
@@ -104,7 +120,6 @@ class DatabaseHelper {
     return puzzles;
   }
 
-  // Insert a session
   Future<int> insertSession(Map<String, dynamic> session) async {
     final db = await database;
     final id = await db.insert(
@@ -116,7 +131,6 @@ class DatabaseHelper {
     return id;
   }
 
-  // Get all sessions
   Future<List<Map<String, dynamic>>> getSessions() async {
     final db = await database;
     final sessions = await db.query('session', orderBy: 'session_name ASC');
@@ -124,7 +138,6 @@ class DatabaseHelper {
     return sessions;
   }
 
-  // Insert a solve
   Future<int> insertSolve(Map<String, dynamic> solve) async {
     final db = await database;
     final id = await db.insert(
@@ -136,7 +149,6 @@ class DatabaseHelper {
     return id;
   }
 
-  // Get solves for a session
   Future<List<Map<String, dynamic>>> getSolves(int sessionId) async {
     final db = await database;
     final solves = await db.query(
@@ -149,7 +161,6 @@ class DatabaseHelper {
     return solves;
   }
 
-  // Get solve count for a session
   Future<int> getSolveCount(int sessionId) async {
     final db = await database;
     final result = await db.rawQuery(
@@ -161,7 +172,6 @@ class DatabaseHelper {
     return count;
   }
 
-  // Insert a tag
   Future<int> insertTag(Map<String, dynamic> tag) async {
     final db = await database;
     final id = await db.insert(
@@ -173,7 +183,6 @@ class DatabaseHelper {
     return id;
   }
 
-  // Get all tags
   Future<List<Map<String, dynamic>>> getTags() async {
     final db = await database;
     final tags = await db.query('tag', orderBy: 'tag_name ASC');
@@ -181,7 +190,6 @@ class DatabaseHelper {
     return tags;
   }
 
-  // Insert a solve-tag relationship
   Future<void> insertSolveTag(int solveId, int tagId) async {
     final db = await database;
     await db.insert('solve_has_tag', {
@@ -191,7 +199,6 @@ class DatabaseHelper {
     print('Inserted solve_tag: solve_id=$solveId, tag_id=$tagId');
   }
 
-  // Get tags for a solve
   Future<List<Map<String, dynamic>>> getTagsForSolve(int solveId) async {
     final db = await database;
     final tags = await db.rawQuery(
