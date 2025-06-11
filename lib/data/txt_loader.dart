@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import '../graph_page/graph/graph_logic.dart';
+import '../graphs_page/graph/graph_logic.dart';
 
 Future<List<SolveData>> loadSolveDataFromText() async {
   final rawText = await rootBundle.loadString('assets/solve_times.txt');
