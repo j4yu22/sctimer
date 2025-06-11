@@ -17,44 +17,193 @@ class DatabaseHelper {
   Future<Database> _initDB(String fileName) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, fileName);
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+    return await openDatabase(
+      path,
+      version: 1,
+      onCreate: _createDB,
+      onConfigure: _onConfigure,
+    );
+  }
+
+  // Enable foreign key support
+  Future _onConfigure(Database db) async {
+    await db.execute('PRAGMA foreign_keys = ON');
+    print('Foreign keys enabled');
   }
 
   Future _createDB(Database db, int version) async {
+    // Create puzzle table
     await db.execute('''
-    CREATE TABLE responses (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      timestamp TEXT NOT NULL,
-      time_taken REAL NOT NULL,
-      is_correct INTEGER NOT NULL
+    CREATE TABLE puzzle (
+      puzzle_id INTEGER PRIMARY KEY,
+      puzzle_name TEXT NOT NULL
     )
     ''');
-    print('Table responses created');
+    // Create session table
+    await db.execute('''
+    CREATE TABLE session (
+      session_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      puzzle_id INTEGER NOT NULL,
+      session_name TEXT NOT NULL UNIQUE,
+      FOREIGN KEY (puzzle_id) REFERENCES puzzle (puzzle_id)
+    )
+    ''');
+    // Create solve table
+    await db.execute('''
+    CREATE TABLE solve (
+      solve_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      solve_number INTEGER NOT NULL,
+      solve_time INTEGER NOT NULL,
+      is_dnf INTEGER,
+      plus_two INTEGER,
+      scramble TEXT NOT NULL,
+      comment TEXT,
+      date_time TEXT NOT NULL,
+      session_id INTEGER NOT NULL,
+      reconstruction TEXT,
+      FOREIGN KEY (session_id) REFERENCES session (session_id)
+    )
+    ''');
+    // Create tag table
+    await db.execute('''
+    CREATE TABLE tag (
+      tag_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      tag_name TEXT NOT NULL
+    )
+    ''');
+    // Create solve_has_tag table
+    await db.execute('''
+    CREATE TABLE solve_has_tag (
+      solve_id INTEGER NOT NULL,
+      tag_id INTEGER NOT NULL,
+      PRIMARY KEY (solve_id, tag_id),
+      FOREIGN KEY (solve_id) REFERENCES solve (solve_id),
+      FOREIGN KEY (tag_id) REFERENCES tag (tag_id)
+    )
+    ''');
+    print('Tables created: puzzle, session, solve, tag, solve_has_tag');
   }
 
-  Future<void> insertResponse(Map<String, dynamic> response) async {
+  // Insert a puzzle
+  Future<int> insertPuzzle(Map<String, dynamic> puzzle) async {
     final db = await database;
-    await db.insert(
-      'responses',
-      response,
+    final id = await db.insert(
+      'puzzle',
+      puzzle,
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
-    print('Inserted response: $response');
+    print('Inserted puzzle: $puzzle');
+    return id;
   }
 
-  Future<List<Map<String, dynamic>>> getResponses() async {
+  // Get all puzzles
+  Future<List<Map<String, dynamic>>> getPuzzles() async {
     final db = await database;
-    final responses = await db.query('responses', orderBy: 'timestamp DESC');
-    print('Fetched ${responses.length} responses');
-    return responses;
+    final puzzles = await db.query('puzzle', orderBy: 'puzzle_name ASC');
+    print('Fetched ${puzzles.length} puzzles');
+    return puzzles;
   }
 
-  Future<int> getResponseCount() async {
+  // Insert a session
+  Future<int> insertSession(Map<String, dynamic> session) async {
     final db = await database;
-    final result = await db.rawQuery('SELECT COUNT(*) as count FROM responses');
+    final id = await db.insert(
+      'session',
+      session,
+      conflictAlgorithm: ConflictAlgorithm.ignore,
+    );
+    print('Inserted session: $session');
+    return id;
+  }
+
+  // Get all sessions
+  Future<List<Map<String, dynamic>>> getSessions() async {
+    final db = await database;
+    final sessions = await db.query('session', orderBy: 'session_name ASC');
+    print('Fetched ${sessions.length} sessions');
+    return sessions;
+  }
+
+  // Insert a solve
+  Future<int> insertSolve(Map<String, dynamic> solve) async {
+    final db = await database;
+    final id = await db.insert(
+      'solve',
+      solve,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+    print('Inserted solve: $solve');
+    return id;
+  }
+
+  // Get solves for a session
+  Future<List<Map<String, dynamic>>> getSolves(int sessionId) async {
+    final db = await database;
+    final solves = await db.query(
+      'solve',
+      where: 'session_id = ?',
+      whereArgs: [sessionId],
+      orderBy: 'date_time DESC',
+    );
+    print('Fetched ${solves.length} solves for session $sessionId');
+    return solves;
+  }
+
+  // Get solve count for a session
+  Future<int> getSolveCount(int sessionId) async {
+    final db = await database;
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) as count FROM solve WHERE session_id = ?',
+      [sessionId],
+    );
     final count = result.first['count'] as int;
-    print('Response count: $count');
+    print('Solve count for session $sessionId: $count');
     return count;
+  }
+
+  // Insert a tag
+  Future<int> insertTag(Map<String, dynamic> tag) async {
+    final db = await database;
+    final id = await db.insert(
+      'tag',
+      tag,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+    print('Inserted tag: $tag');
+    return id;
+  }
+
+  // Get all tags
+  Future<List<Map<String, dynamic>>> getTags() async {
+    final db = await database;
+    final tags = await db.query('tag', orderBy: 'tag_name ASC');
+    print('Fetched ${tags.length} tags');
+    return tags;
+  }
+
+  // Insert a solve-tag relationship
+  Future<void> insertSolveTag(int solveId, int tagId) async {
+    final db = await database;
+    await db.insert('solve_has_tag', {
+      'solve_id': solveId,
+      'tag_id': tagId,
+    }, conflictAlgorithm: ConflictAlgorithm.ignore);
+    print('Inserted solve_tag: solve_id=$solveId, tag_id=$tagId');
+  }
+
+  // Get tags for a solve
+  Future<List<Map<String, dynamic>>> getTagsForSolve(int solveId) async {
+    final db = await database;
+    final tags = await db.rawQuery(
+      '''
+      SELECT tag.* FROM tag
+      JOIN solve_has_tag ON tag.tag_id = solve_has_tag.tag_id
+      WHERE solve_has_tag.solve_id = ?
+    ''',
+      [solveId],
+    );
+    print('Fetched ${tags.length} tags for solve $solveId');
+    return tags;
   }
 
   Future<void> close() async {
