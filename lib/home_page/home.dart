@@ -6,8 +6,21 @@ import 'scramble/scramble_ui.dart';
 import '../header/header_ui.dart';
 import '/data/database_helper.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  bool _showFullscreenTimer = false;
+
+  void _setFullscreen(bool value) {
+    setState(() {
+      _showFullscreenTimer = value;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,13 +28,26 @@ class HomePage extends StatelessWidget {
       canPop: false,
       child: SafeArea(
         child: Scaffold(
-          body: Column(
+          body: Stack(
             children: [
-              HeaderUI(),
-              ScrambleUI(),
-              Expanded(child: TimerUI()), // Fills remaining space
-              TimeDisplayUI(),
-              Footer(),
+              Column(
+                children: [
+                  HeaderUI(),
+                  ScrambleUI(),
+                  Expanded(child: TimerUI(onFullscreenChange: _setFullscreen)),
+                  TimeDisplayUI(),
+                  Footer(),
+                ],
+              ),
+
+              // Fullscreen overlay only when _showFullscreenTimer is true
+              if (_showFullscreenTimer)
+                Positioned.fill(
+                  child: TimerUI(
+                    isFullscreen: true,
+                    onFullscreenChange: _setFullscreen,
+                  ),
+                ),
             ],
           ),
         ),
