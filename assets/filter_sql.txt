@@ -6,6 +6,17 @@ final result = await db.rawQuery ('''
     ORDER BY time ASC;"
 ''');
 
+// pull all solves from database by specified session
+final result = await db.rawQuery (
+    '''
+    "SELECT solve_time, date_time
+    FROM solve
+    WHERE session_id = ?
+    ORDER BY time ASC;"
+    ''',
+    [selectedSessionID]
+);
+
 // Dart get data from SQL query
 List<double> solveTimes = [];
 List<DateTime> solveDates = [];
@@ -34,14 +45,3 @@ List<double> calculateRollingAverage(List<double> times, int windowSize) {
 // get ao5 and ao12 lists
 List<double> ao5list = calculateRollingAverage(solveTimes, 5);
 List<double> ao12list = calculateRollingAverage(solveTimes, 12;
-
-// pull all solves from database by specified session
-final result = await db.rawQuery (
-    '''
-    "SELECT solve_time, date_time
-    FROM solve
-    WHERE session_id = ?
-    ORDER BY time ASC;"
-    ''',
-    [selectedSessionID]
-);
