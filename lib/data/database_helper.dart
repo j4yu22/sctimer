@@ -232,9 +232,10 @@ class DatabaseHelper {
     print('Database closed');
   }
 
-  Future<List<SolveData>> getSolvesBySession(String? sessionId) async {
+  Future<List<SolveData>> getSolvesBySession(int? sessionId) async {
     final db = await database;
 
+<<<<<<< HEAD
     // If sessionId is null, return all solves
     final List<Map<String, dynamic>> results =
         sessionId == null
@@ -252,16 +253,55 @@ class DatabaseHelper {
           ''',
               [sessionId],
             );
+=======
+    // Build and run the correct SQL
+    final sql = sessionId == null
+        ? '''
+        SELECT solve_number,
+               session_id,
+               solve_time,
+               is_dnf,
+               plus_two,
+               date_time,
+               scramble,
+               reconstruction,
+               comment
+        FROM solve
+        ORDER BY date_time ASC;
+        '''
+        : '''
+        SELECT solve_number,
+               session_id,
+               solve_time,
+               is_dnf,
+               plus_two,
+               date_time,
+               scramble,
+               reconstruction,
+               comment
+        FROM solve
+        WHERE session_id = ?
+        ORDER BY date_time ASC;
+        ''';
+>>>>>>> 2abaad22620155ec3cd2883ccad70685a80ddfff
 
-    return results.map((row) {
+    final List<Map<String, dynamic>> rows = sessionId == null
+        ? await db.rawQuery(sql)
+        : await db.rawQuery(sql, [sessionId]);
+
+    // Map rows into SolveData
+    return rows.map((row) {
       return SolveData(
-        puzzle: row['puzzle'],
-        category: row['category'],
-        timeMs: (row['solve_time'] as num).toDouble(),
-        date: DateTime.parse(row['date_time']),
-        scramble: row['scramble'] ?? '',
-        penalty: row['penalty'] ?? 0,
-        comment: row['comment'] ?? '',
+        solveNumber: row['solve_number']    as int,
+        sessionId:   row['session_id']      as int,
+        solveTime:   (row['solve_time']     as num).toInt(),
+        isDNF:       (row['is_dnf']         as num) == 1,
+        plusTwo:     (row['plus_two']       as num) == 1,
+        dateTime:    DateTime.parse(row['date_time'] as String),
+        scramble:    row['scramble']       as String?  ?? '',
+        reconstruction:
+        row['reconstruction'] as String?  ?? '',
+        comment:     row['comment']        as String?  ?? '',
       );
     }).toList();
   }
