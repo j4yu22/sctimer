@@ -1,6 +1,5 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import '../graphs_page/graph/graph_logic.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -230,79 +229,5 @@ class DatabaseHelper {
     final db = await database;
     await db.close();
     print('Database closed');
-  }
-
-  Future<List<SolveData>> getSolvesBySession(int? sessionId) async {
-    final db = await database;
-
-<<<<<<< HEAD
-    // If sessionId is null, return all solves
-    final List<Map<String, dynamic>> results =
-        sessionId == null
-            ? await db.rawQuery('''
-          SELECT puzzle, category, solve_time, date_time, scramble, penalty, comment
-          FROM solve
-          ORDER BY date_time ASC;
-          ''')
-            : await db.rawQuery(
-              '''
-          SELECT puzzle, category, solve_time, date_time, scramble, penalty, comment
-          FROM solve
-          WHERE session_id = ?
-          ORDER BY date_time ASC;
-          ''',
-              [sessionId],
-            );
-=======
-    // Build and run the correct SQL
-    final sql = sessionId == null
-        ? '''
-        SELECT solve_number,
-               session_id,
-               solve_time,
-               is_dnf,
-               plus_two,
-               date_time,
-               scramble,
-               reconstruction,
-               comment
-        FROM solve
-        ORDER BY date_time ASC;
-        '''
-        : '''
-        SELECT solve_number,
-               session_id,
-               solve_time,
-               is_dnf,
-               plus_two,
-               date_time,
-               scramble,
-               reconstruction,
-               comment
-        FROM solve
-        WHERE session_id = ?
-        ORDER BY date_time ASC;
-        ''';
->>>>>>> 2abaad22620155ec3cd2883ccad70685a80ddfff
-
-    final List<Map<String, dynamic>> rows = sessionId == null
-        ? await db.rawQuery(sql)
-        : await db.rawQuery(sql, [sessionId]);
-
-    // Map rows into SolveData
-    return rows.map((row) {
-      return SolveData(
-        solveNumber: row['solve_number']    as int,
-        sessionId:   row['session_id']      as int,
-        solveTime:   (row['solve_time']     as num).toInt(),
-        isDNF:       (row['is_dnf']         as num) == 1,
-        plusTwo:     (row['plus_two']       as num) == 1,
-        dateTime:    DateTime.parse(row['date_time'] as String),
-        scramble:    row['scramble']       as String?  ?? '',
-        reconstruction:
-        row['reconstruction'] as String?  ?? '',
-        comment:     row['comment']        as String?  ?? '',
-      );
-    }).toList();
   }
 }
