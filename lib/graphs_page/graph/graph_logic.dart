@@ -3,6 +3,7 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 
 class SolveData {
   final String puzzle;
+  final String session;
   final String category;
   final double timeMs;
   final DateTime date;
@@ -12,6 +13,7 @@ class SolveData {
 
   SolveData({
     required this.puzzle,
+    required this.session,
     required this.category,
     required this.timeMs,
     required this.date,
@@ -75,6 +77,7 @@ class GraphPageState extends State<GraphPage> {
 
       averaged.add(SolveData(
         puzzle: data[i].puzzle,
+        session: data[i].session,
         category: data[i].category,
         timeMs: average,
         date: data[i].date, // use the date of the last solve in the window

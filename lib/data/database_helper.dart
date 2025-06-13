@@ -243,6 +243,7 @@ class DatabaseHelper {
     return results.map((row) {
       return SolveData(
         puzzle: row['puzzle'],
+        session: row['session'],
         category: row['category'],
         timeMs: (row['solve_time'] as num).toDouble(),
         date: DateTime.parse(row['date_time']),
