@@ -139,6 +139,18 @@ class DatabaseHelper {
     return sessions;
   }
 
+  Future<List<Map<String, dynamic>>> getSessionsByPuzzle(int puzzleId) async {
+    final db = await database;
+    final sessions = await db.query(
+      'session',
+      where: 'puzzle_id = ?',
+      whereArgs: [puzzleId],
+      orderBy: 'session_name ASC',
+    );
+    print('Fetched ${sessions.length} sessions for puzzle $puzzleId');
+    return sessions;
+  }
+
   Future<int> insertSolve(Map<String, dynamic> solve) async {
     final db = await database;
     final id = await db.insert(
@@ -224,21 +236,22 @@ class DatabaseHelper {
     final db = await database;
 
     // If sessionId is null, return all solves
-    final List<Map<String, dynamic>> results = sessionId == null
-        ? await db.rawQuery(
-        '''
+    final List<Map<String, dynamic>> results =
+        sessionId == null
+            ? await db.rawQuery('''
           SELECT puzzle, category, solve_time, date_time, scramble, penalty, comment
           FROM solve
           ORDER BY date_time ASC;
           ''')
-        : await db.rawQuery(
-        '''
+            : await db.rawQuery(
+              '''
           SELECT puzzle, category, solve_time, date_time, scramble, penalty, comment
           FROM solve
           WHERE session_id = ?
           ORDER BY date_time ASC;
           ''',
-        [sessionId]);
+              [sessionId],
+            );
 
     return results.map((row) {
       return SolveData(
@@ -252,5 +265,4 @@ class DatabaseHelper {
       );
     }).toList();
   }
-
 }
