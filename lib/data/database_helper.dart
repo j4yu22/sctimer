@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:sctimer/graphs_page/graph/graph_logic.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -223,6 +224,22 @@ class DatabaseHelper {
     );
     print('Fetched ${tags.length} tags for solve $solveId');
     return tags;
+  }
+
+  Future<List<SolveData>> getSolveDataList(int sessionId) async {
+    final rawSolves = await getSolves(sessionId);
+
+    return rawSolves.map((row) => SolveData(
+      solveNumber: row['solve_num'],
+      sessionId: row['session_id'],
+      solveTime: row['solve_time'],
+      isDNF: (row['is_dnf'] ?? 0) == 1,
+      plusTwo: (row['plus_two'] ?? 0) == 1,
+      dateTime: DateTime.parse(row['date_time']),
+      scramble: row['scramble'] ?? '',
+      reconstruction: row['reconstruction'] ?? '',
+      comment: row['comment'] ?? '',
+    )).toList();
   }
 
   Future<void> close() async {

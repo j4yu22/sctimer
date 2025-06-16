@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'graph/graph_logic.dart';
-import '../data/database_helper.dart'; // adjust path
+import '../data/database_helper.dart';
 
 class GraphsPage extends StatefulWidget {
   const GraphsPage({super.key});
@@ -17,15 +17,15 @@ class _GraphsPageState extends State<GraphsPage> {
   Future<void> _openGraph() async {
     setState(() => isLoading = true);
 
-    final data = await DatabaseHelper.instance.getSolvesBySession(selectedSessionId as int?);
-
     setState(() => isLoading = false);
+
+    final solveDataList = await DatabaseHelper.instance.getSolveDataList(selectedSessionId as int);
 
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => GraphPage(
-          solveData: data,  // your List<SolveData>
+          solveData: solveDataList,
           zoomController: ZoomPanBehavior(
             enablePinching: true,
             enablePanning: true,

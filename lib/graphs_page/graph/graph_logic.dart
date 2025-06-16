@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-// Model matching database schema
 class SolveData {
   final int solveNumber;
   final int sessionId;
@@ -143,7 +142,8 @@ class GraphPageState extends State<GraphPage> {
               ],
             ),
           ),
-          // Checkboxes for graph types
+
+          /// Checkboxes for graph types
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Row(
