@@ -82,8 +82,8 @@ class GraphUI extends StatelessWidget {
                   series: <CartesianSeries<SolveData, DateTime>>[
                     LineSeries<SolveData, DateTime>(
                       dataSource: solveData,
-                      xValueMapper: (data, _) => data.date,
-                      yValueMapper: (data, _) => data.timeMs,
+                      xValueMapper: (data, _) => data.dateTime,
+                      yValueMapper: (data, _) => data.solveTime,
                       name: 'Solve Time',
                       dataLabelSettings: const DataLabelSettings(isVisible: false),
                       markerSettings: const MarkerSettings(isVisible: true),

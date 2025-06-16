@@ -17,7 +17,7 @@ class _GraphsPageState extends State<GraphsPage> {
   Future<void> _openGraph() async {
     setState(() => isLoading = true);
 
-    final data = await DatabaseHelper.instance.getSolvesBySession(selectedSessionId);
+    final data = await DatabaseHelper.instance.getSolvesBySession(selectedSessionId as int?);
 
     setState(() => isLoading = false);
 
@@ -25,12 +25,15 @@ class _GraphsPageState extends State<GraphsPage> {
       context,
       MaterialPageRoute(
         builder: (_) => GraphPage(
-          solveData: data,
-          zoomController: ZoomPanBehavior(enablePinching: true, enablePanning: true),
-          selectedCategory: selectedSessionId,
+          solveData: data,  // your List<SolveData>
+          zoomController: ZoomPanBehavior(
+            enablePinching: true,
+            enablePanning: true,
+          ),
         ),
       ),
     );
+
   }
 
   @override

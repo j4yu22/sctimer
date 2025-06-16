@@ -1,6 +1,5 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import '../graphs_page/graph/graph_logic.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -139,6 +138,18 @@ class DatabaseHelper {
     return sessions;
   }
 
+  Future<List<Map<String, dynamic>>> getSessionsByPuzzle(int puzzleId) async {
+    final db = await database;
+    final sessions = await db.query(
+      'session',
+      where: 'puzzle_id = ?',
+      whereArgs: [puzzleId],
+      orderBy: 'session_name ASC',
+    );
+    print('Fetched ${sessions.length} sessions for puzzle $puzzleId');
+    return sessions;
+  }
+
   Future<int> insertSolve(Map<String, dynamic> solve) async {
     final db = await database;
     final id = await db.insert(
@@ -219,39 +230,4 @@ class DatabaseHelper {
     await db.close();
     print('Database closed');
   }
-
-  Future<List<SolveData>> getSolvesBySession(String? sessionId) async {
-    final db = await database;
-
-    // If sessionId is null, return all solves
-    final List<Map<String, dynamic>> results = sessionId == null
-        ? await db.rawQuery(
-        '''
-          SELECT puzzle, category, solve_time, date_time, scramble, penalty, comment
-          FROM solve
-          ORDER BY date_time ASC;
-          ''')
-        : await db.rawQuery(
-        '''
-          SELECT puzzle, category, solve_time, date_time, scramble, penalty, comment
-          FROM solve
-          WHERE session_id = ?
-          ORDER BY date_time ASC;
-          ''',
-        [sessionId]);
-
-    return results.map((row) {
-      return SolveData(
-        puzzle: row['puzzle'],
-        session: row['session'],
-        category: row['category'],
-        timeMs: (row['solve_time'] as num).toDouble(),
-        date: DateTime.parse(row['date_time']),
-        scramble: row['scramble'] ?? '',
-        penalty: row['penalty'] ?? 0,
-        comment: row['comment'] ?? '',
-      );
-    }).toList();
-  }
-
 }

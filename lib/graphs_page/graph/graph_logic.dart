@@ -1,24 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
+// Model matching database schema
 class SolveData {
-  final String puzzle;
-  final String session;
-  final String category;
-  final double timeMs;
-  final DateTime date;
+  final int solveNumber;
+  final int sessionId;
+  final int solveTime;       // in milliseconds
+  final bool isDNF;
+  final bool plusTwo;
+  final DateTime dateTime;
   final String scramble;
-  final int penalty;
+  final String reconstruction;
   final String comment;
 
   SolveData({
-    required this.puzzle,
-    required this.session,
-    required this.category,
-    required this.timeMs,
-    required this.date,
+    required this.solveNumber,
+    required this.sessionId,
+    required this.solveTime,
+    required this.isDNF,
+    required this.plusTwo,
+    required this.dateTime,
     required this.scramble,
-    required this.penalty,
+    required this.reconstruction,
     required this.comment,
   });
 }
@@ -26,8 +29,11 @@ class SolveData {
 class GraphPage extends StatefulWidget {
   final List<SolveData> solveData;
   final ZoomPanBehavior zoomController;
-  final String? selectedCategory;
-  const GraphPage({super.key, required this.solveData, required this.zoomController, this.selectedCategory});
+  const GraphPage({
+    super.key,
+    required this.solveData,
+    required this.zoomController,
+  });
 
   @override
   GraphPageState createState() => GraphPageState();
@@ -37,28 +43,10 @@ enum GraphType { raw, ao5, ao12 }
 
 class GraphPageState extends State<GraphPage> {
   late ZoomPanBehavior _zoomPanBehavior;
-  GraphType _selectedGraph = GraphType.raw;
-
-  List<SolveData> get _filteredSolvesBySession {
-    if (_selectedSessionCategory == null) return widget.solveData;
-    return widget.solveData.where((s) => s.category == _selectedSessionCategory).toList();
-  }
-
-
-
-  List<SolveData> get _filteredData {
-    final baseList = _filteredSolvesBySession;
-    switch (_selectedGraph) {
-      case GraphType.ao5:
-        return _calculateRollingAverage(baseList, 5);
-      case GraphType.ao12:
-        return _calculateRollingAverage(baseList, 12);
-      case GraphType.raw:
-      default:
-        return baseList;
-    }
-  }
-
+  int? _selectedSessionId;
+  bool _showRaw = true;
+  bool _showAo5 = false;
+  bool _showAo12 = false;
 
   @override
   void initState() {
@@ -66,73 +54,135 @@ class GraphPageState extends State<GraphPage> {
     _zoomPanBehavior = widget.zoomController;
   }
 
+  /// All unique session IDs
+  List<int> get _sessionIds => widget.solveData
+      .map((s) => s.sessionId)
+      .toSet()
+      .toList()
+    ..sort();
+
+  /// Data filtered by selected session
+  List<SolveData> get _sessionFiltered {
+    if (_selectedSessionId == null) return widget.solveData;
+    return widget.solveData
+        .where((s) => s.sessionId == _selectedSessionId)
+        .toList();
+  }
+
+  /// Rolling average calculator
   List<SolveData> _calculateRollingAverage(List<SolveData> data, int windowSize) {
-    List<SolveData> averaged = [];
-
-    for (int i = 0; i < data.length; i++) {
-      if (i + 1 < windowSize) continue; // skip until there's enough solves to average
-
+    final averaged = <SolveData>[];
+    for (var i = windowSize - 1; i < data.length; i++) {
       final window = data.sublist(i + 1 - windowSize, i + 1);
-      final average = window.map((s) => s.timeMs).reduce((a, b) => a + b) / windowSize;
-
+      final avg = window.map((s) => s.solveTime).reduce((a, b) => a + b) ~/ windowSize;
       averaged.add(SolveData(
-        puzzle: data[i].puzzle,
-        session: data[i].session,
-        category: data[i].category,
-        timeMs: average,
-        date: data[i].date, // use the date of the last solve in the window
+        solveNumber: window.last.solveNumber,
+        sessionId: window.last.sessionId,
+        solveTime: avg,
+        isDNF: false,
+        plusTwo: false,
+        dateTime: window.last.dateTime,
         scramble: '',
-        penalty: 0,
+        reconstruction: window.last.reconstruction,
         comment: 'Ao$windowSize',
       ));
     }
-
     return averaged;
   }
 
-  Set<String> get _sessionCategories {
-    return widget.solveData.map((s) => s.category).toSet();
-  }
-
-  String? _selectedSessionCategory;
-
-
   @override
   Widget build(BuildContext context) {
+    // Prepare series data
+    final rawData = _sessionFiltered;
+    final ao5Data = _calculateRollingAverage(_sessionFiltered, 5);
+    final ao12Data = _calculateRollingAverage(_sessionFiltered, 12);
+
+    final series = <CartesianSeries<SolveData, DateTime>>[];
+    if (_showRaw) {
+      series.add(LineSeries<SolveData, DateTime>(
+        dataSource: rawData,
+        xValueMapper: (d, _) => d.dateTime,
+        yValueMapper: (d, _) => d.solveTime,
+        name: 'RAW',
+      ));
+    }
+    if (_showAo5) {
+      series.add(LineSeries<SolveData, DateTime>(
+        dataSource: ao5Data,
+        xValueMapper: (d, _) => d.dateTime,
+        yValueMapper: (d, _) => d.solveTime,
+        name: 'AO5',
+      ));
+    }
+    if (_showAo12) {
+      series.add(LineSeries<SolveData, DateTime>(
+        dataSource: ao12Data,
+        xValueMapper: (d, _) => d.dateTime,
+        yValueMapper: (d, _) => d.solveTime,
+        name: 'AO12',
+      ));
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text("Rubik's Cube Solve Times")),
       body: Column(
         children: [
+          // Session filter dropdown
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: DropdownButton<GraphType>(
-              value: _selectedGraph,
-              onChanged: (GraphType? newValue) {
-                setState(() {
-                  _selectedGraph = newValue!;
-                });
-              },
-              items: GraphType.values.map((GraphType type) {
-                return DropdownMenuItem<GraphType>(
-                  value: type,
-                  child: Text(type.toString().split('.').last.toUpperCase()),
-                );
-              }).toList(),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: DropdownButton<int>(
+              hint: const Text('Select Session'),
+              value: _selectedSessionId,
+              onChanged: (val) => setState(() => _selectedSessionId = val),
+              items: [
+                const DropdownMenuItem<int>(value: null, child: Text('All Sessions')),
+                ..._sessionIds.map((id) => DropdownMenuItem<int>(
+                  value: id,
+                  child: Text('Session $id'),
+                ))
+              ],
             ),
           ),
+          // Checkboxes for graph types
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Raw'),
+                    value: _showRaw,
+                    onChanged: (v) => setState(() => _showRaw = v ?? false),
+                  ),
+                ),
+                Expanded(
+                  child: CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Ao5'),
+                    value: _showAo5,
+                    onChanged: (v) => setState(() => _showAo5 = v ?? false),
+                  ),
+                ),
+                Expanded(
+                  child: CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Ao12'),
+                    value: _showAo12,
+                    onChanged: (v) => setState(() => _showAo12 = v ?? false),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Chart
           Expanded(
             child: SfCartesianChart(
               title: ChartTitle(text: 'Solve Times Over Date'),
               primaryXAxis: DateTimeAxis(),
               zoomPanBehavior: _zoomPanBehavior,
-              series: <CartesianSeries<SolveData, DateTime>>[
-                LineSeries<SolveData, DateTime>(
-                  dataSource: widget.solveData,
-                  xValueMapper: (data, _) => data.date,
-                  yValueMapper: (data, _) => data.timeMs,
-                  name: _selectedGraph.toString().split('.').last.toUpperCase(),
-                )
-              ],
+              legend: Legend(isVisible: true),
+              series: series,
             ),
           ),
         ],
