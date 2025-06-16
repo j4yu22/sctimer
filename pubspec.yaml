@@ -39,6 +39,7 @@ dependencies:
   sqflite: ^2.3.5
   path: ^1.9.0
   sqflite_common_ffi: ^2.3.5
+  rubikcube: ^1.0.2 
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -96,4 +97,4 @@ flutter:
   #         weight: 700
   #
   # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/to/font-from-package
+  # see https://flutter.dev/to/font-from-package 

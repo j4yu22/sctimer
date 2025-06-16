@@ -1,7 +1,17 @@
 import 'package:flutter/material.dart';
 
-class ScrambleUI extends StatelessWidget {
-  const ScrambleUI({super.key});
+class ScrambleUI extends StatefulWidget{
+  @override
+  State<ScrambleUI> createState() => ScrambleUIWidget();
+}
+
+class ScrambleUIWidget extends State<ScrambleUI> {
+  late String _scramble = GetNewScramble();
+
+  String GetNewScramble()
+  {
+    return "";
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,9 +28,9 @@ class ScrambleUI extends StatelessWidget {
           const SizedBox(width: 8),
 
           // Scramble text (center)
-          const Expanded(
+          Expanded(
             child: Text(
-              'scramble text',
+              _scramble,
               style: TextStyle(fontSize: 14),
               overflow: TextOverflow.visible,
             ),
