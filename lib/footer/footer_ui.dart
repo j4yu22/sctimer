@@ -22,7 +22,7 @@ class Footer extends StatelessWidget {
                 onPressed: () {
                   Navigator.pushNamed(context, '/');
                 },
-              ), // ElevatedButton
+              ),
               IconButton(
                 icon: const Icon(Icons.menu),
                 style: ButtonStyle(
@@ -32,7 +32,7 @@ class Footer extends StatelessWidget {
                 onPressed: () {
                   Navigator.pushNamed(context, '/times');
                 },
-              ), // ElevatedButton
+              ),
               IconButton(
                 icon: const Icon(Icons.auto_graph),
                 style: ButtonStyle(
@@ -42,7 +42,7 @@ class Footer extends StatelessWidget {
                 onPressed: () {
                   Navigator.pushNamed(context, '/graphs');
                 },
-              ), // ElevatedButton
+              ),
               IconButton(
                 icon: const Icon(Icons.bar_chart),
                 style: ButtonStyle(
@@ -52,8 +52,8 @@ class Footer extends StatelessWidget {
                 onPressed: () {
                   Navigator.pushNamed(context, '/stats');
                 },
-              ), // ElevatedButton
-            ], // <Widget>[]
+              ),
+            ],
           ),
         ),
       ],

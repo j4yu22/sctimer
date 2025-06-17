@@ -118,7 +118,7 @@ class DatabaseHelper {
     final db = await database;
     final puzzles = await db.query('puzzle', orderBy: 'puzzle_name ASC');
     print('Fetched ${puzzles.length} puzzles');
-    return puzzles;
+    return await puzzles;
   }
 
   Future<int> insertSession(Map<String, dynamic> session) async {
