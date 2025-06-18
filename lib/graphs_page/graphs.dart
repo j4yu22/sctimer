@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'graph/graph_logic.dart';
 import '../data/database_helper.dart';
+import '../footer/footer_ui.dart';
 
 class GraphsPage extends StatefulWidget {
   const GraphsPage({super.key});
@@ -19,21 +20,23 @@ class _GraphsPageState extends State<GraphsPage> {
 
     setState(() => isLoading = false);
 
-    final solveDataList = await DatabaseHelper.instance.getSolveDataList(selectedSessionId as int);
+    final solveDataList = await DatabaseHelper.instance.getSolveDataList(
+      selectedSessionId as int,
+    );
 
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => GraphPage(
-          solveData: solveDataList,
-          zoomController: ZoomPanBehavior(
-            enablePinching: true,
-            enablePanning: true,
-          ),
-        ),
+        builder:
+            (_) => GraphPage(
+              solveData: solveDataList,
+              zoomController: ZoomPanBehavior(
+                enablePinching: true,
+                enablePanning: true,
+              ),
+            ),
       ),
     );
-
   }
 
   @override
@@ -62,13 +65,15 @@ class _GraphsPageState extends State<GraphsPage> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: isLoading ? null : _openGraph,
-              child: isLoading
-                  ? const CircularProgressIndicator()
-                  : const Text('Show Graph'),
+              child:
+                  isLoading
+                      ? const CircularProgressIndicator()
+                      : const Text('Show Graph'),
             ),
           ],
         ),
       ),
+      bottomNavigationBar: const Footer(),
     );
   }
 }

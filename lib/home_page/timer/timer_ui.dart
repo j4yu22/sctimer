@@ -17,6 +17,7 @@ class TimerUI extends StatefulWidget {
 }
 
 class _TimerUIState extends State<TimerUI> {
+  bool _cancelledBySwipe = false;
   bool _isHolding = false;
   bool _primed = false;
   final Duration _holdDuration = const Duration(milliseconds: 300);
@@ -43,12 +44,19 @@ class _TimerUIState extends State<TimerUI> {
   }
 
   void _onTapUp(TapUpDetails details) {
+    _handleFingerLift();
+  }
+
+  void _onPanEnd(DragEndDetails details) {
+    _handleFingerLift();
+  }
+
+  void _handleFingerLift() {
     _isHolding = false;
 
     if (_primed) {
       setState(() => _primed = false);
 
-      // navigate to fullscreen timer and start
       Navigator.of(context).push(
         MaterialPageRoute(
           fullscreenDialog: true,
@@ -64,6 +72,7 @@ class _TimerUIState extends State<TimerUI> {
       child: GestureDetector(
         onTapDown: _onTapDown,
         onTapUp: _onTapUp,
+        onPanEnd: _onPanEnd,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           color: _primed ? Colors.yellow : Colors.grey[400],
