@@ -18,18 +18,18 @@ class _GraphsPageState extends State<GraphsPage> {
   Future<void> _openGraph() async {
     setState(() => isLoading = true);
 
-    setState(() => isLoading = false);
-
-    final solveDataList = await DatabaseHelper.instance.getSolveDataList(
+    final solveDataList = await DatabaseHelper.instance.getSolves(
       selectedSessionId as int,
     );
+    final solveData = solveDataList.map(SolveData.fromMap).toList();
+    setState(() => isLoading = false);
 
     Navigator.push(
       context,
       MaterialPageRoute(
         builder:
             (_) => GraphPage(
-              solveData: solveDataList,
+              solveData: solveData,
               zoomController: ZoomPanBehavior(
                 enablePinching: true,
                 enablePanning: true,

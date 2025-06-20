@@ -4,7 +4,7 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 class SolveData {
   final int solveNumber;
   final int sessionId;
-  final int solveTime;       // in milliseconds
+  final int solveTime; // in milliseconds
   final bool isDNF;
   final bool plusTwo;
   final DateTime dateTime;
@@ -23,6 +23,21 @@ class SolveData {
     required this.reconstruction,
     required this.comment,
   });
+
+  factory SolveData.fromMap(Map<String, dynamic> map) {
+    return SolveData(
+      solveNumber: map['solve_number'] as int? ?? 0, // Default to 0 if null
+      sessionId: map['session_id'] as int,
+      solveTime: map['solve_time'] as int,
+      isDNF: (map['is_dnf'] as int) == 1,
+      plusTwo: (map['plus_two'] as int) == 1,
+      dateTime: DateTime.parse(map['date_time'] as String),
+      scramble: map['scramble'] as String,
+      reconstruction:
+          map['reconstruction'] as String? ?? '', // Default to empty
+      comment: map['comment'] as String? ?? '', // Default to empty
+    );
+  }
 }
 
 class GraphPage extends StatefulWidget {
@@ -54,11 +69,8 @@ class GraphPageState extends State<GraphPage> {
   }
 
   /// All unique session IDs
-  List<int> get _sessionIds => widget.solveData
-      .map((s) => s.sessionId)
-      .toSet()
-      .toList()
-    ..sort();
+  List<int> get _sessionIds =>
+      widget.solveData.map((s) => s.sessionId).toSet().toList()..sort();
 
   /// Data filtered by selected session
   List<SolveData> get _sessionFiltered {
@@ -69,22 +81,28 @@ class GraphPageState extends State<GraphPage> {
   }
 
   /// Rolling average calculator
-  List<SolveData> _calculateRollingAverage(List<SolveData> data, int windowSize) {
+  List<SolveData> _calculateRollingAverage(
+    List<SolveData> data,
+    int windowSize,
+  ) {
     final averaged = <SolveData>[];
     for (var i = windowSize - 1; i < data.length; i++) {
       final window = data.sublist(i + 1 - windowSize, i + 1);
-      final avg = window.map((s) => s.solveTime).reduce((a, b) => a + b) ~/ windowSize;
-      averaged.add(SolveData(
-        solveNumber: window.last.solveNumber,
-        sessionId: window.last.sessionId,
-        solveTime: avg,
-        isDNF: false,
-        plusTwo: false,
-        dateTime: window.last.dateTime,
-        scramble: '',
-        reconstruction: window.last.reconstruction,
-        comment: 'Ao$windowSize',
-      ));
+      final avg =
+          window.map((s) => s.solveTime).reduce((a, b) => a + b) ~/ windowSize;
+      averaged.add(
+        SolveData(
+          solveNumber: window.last.solveNumber,
+          sessionId: window.last.sessionId,
+          solveTime: avg,
+          isDNF: false,
+          plusTwo: false,
+          dateTime: window.last.dateTime,
+          scramble: '',
+          reconstruction: window.last.reconstruction,
+          comment: 'Ao$windowSize',
+        ),
+      );
     }
     return averaged;
   }
@@ -98,28 +116,34 @@ class GraphPageState extends State<GraphPage> {
 
     final series = <CartesianSeries<SolveData, DateTime>>[];
     if (_showRaw) {
-      series.add(LineSeries<SolveData, DateTime>(
-        dataSource: rawData,
-        xValueMapper: (d, _) => d.dateTime,
-        yValueMapper: (d, _) => d.solveTime,
-        name: 'RAW',
-      ));
+      series.add(
+        LineSeries<SolveData, DateTime>(
+          dataSource: rawData,
+          xValueMapper: (d, _) => d.dateTime,
+          yValueMapper: (d, _) => d.solveTime,
+          name: 'RAW',
+        ),
+      );
     }
     if (_showAo5) {
-      series.add(LineSeries<SolveData, DateTime>(
-        dataSource: ao5Data,
-        xValueMapper: (d, _) => d.dateTime,
-        yValueMapper: (d, _) => d.solveTime,
-        name: 'AO5',
-      ));
+      series.add(
+        LineSeries<SolveData, DateTime>(
+          dataSource: ao5Data,
+          xValueMapper: (d, _) => d.dateTime,
+          yValueMapper: (d, _) => d.solveTime,
+          name: 'AO5',
+        ),
+      );
     }
     if (_showAo12) {
-      series.add(LineSeries<SolveData, DateTime>(
-        dataSource: ao12Data,
-        xValueMapper: (d, _) => d.dateTime,
-        yValueMapper: (d, _) => d.solveTime,
-        name: 'AO12',
-      ));
+      series.add(
+        LineSeries<SolveData, DateTime>(
+          dataSource: ao12Data,
+          xValueMapper: (d, _) => d.dateTime,
+          yValueMapper: (d, _) => d.solveTime,
+          name: 'AO12',
+        ),
+      );
     }
 
     return Scaffold(
@@ -134,11 +158,16 @@ class GraphPageState extends State<GraphPage> {
               value: _selectedSessionId,
               onChanged: (val) => setState(() => _selectedSessionId = val),
               items: [
-                const DropdownMenuItem<int>(value: null, child: Text('All Sessions')),
-                ..._sessionIds.map((id) => DropdownMenuItem<int>(
-                  value: id,
-                  child: Text('Session $id'),
-                ))
+                const DropdownMenuItem<int>(
+                  value: null,
+                  child: Text('All Sessions'),
+                ),
+                ..._sessionIds.map(
+                  (id) => DropdownMenuItem<int>(
+                    value: id,
+                    child: Text('Session $id'),
+                  ),
+                ),
               ],
             ),
           ),

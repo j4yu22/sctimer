@@ -1,137 +1,173 @@
-import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'package:sctimer/graphs_page/graph/graph_logic.dart';
+import 'package:sqflite/sqflite.dart';
 
+// DatabaseHelper manages the SQLite database for the cube timer app.
+// Singleton pattern ensures one instance.
+// Creates tables for puzzle, scramble_type, session, solve, tag, solve_has_tag.
+// Provides methods for CRUD operations and default data insertion.
 class DatabaseHelper {
-  static final DatabaseHelper instance = DatabaseHelper._init();
+  static final DatabaseHelper instance = DatabaseHelper._();
   static Database? _database;
+  static const String _dbName = 'responses.db';
+  static const int _version = 1;
 
-  DatabaseHelper._init();
+  DatabaseHelper._();
 
+  // Initialize database, creating tables and default data if needed.
   Future<Database> get database async {
     if (_database != null) return _database!;
-    _database = await _initDB('responses.db');
-    print('Database initialized at: ${await getDatabasesPath()}/responses.db');
-    await _ensureDefaultData();
+    _database = await _initDB();
     return _database!;
   }
 
-  Future<Database> _initDB(String fileName) async {
+  // Open database, create tables, and insert default data.
+  Future<Database> _initDB() async {
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, fileName);
-    return await openDatabase(
+    final path = join(dbPath, _dbName);
+    print('Database initialized at: $path');
+
+    final db = await openDatabase(
       path,
-      version: 1,
+      version: _version,
       onCreate: _createDB,
-      onConfigure: _onConfigure,
+      onConfigure: (db) async {
+        await db.execute('PRAGMA foreign_keys = ON');
+      },
     );
+
+    // Insert default data after creation
+    await _ensureDefaultData(db);
+    return db;
   }
 
-  Future _onConfigure(Database db) async {
-    await db.execute('PRAGMA foreign_keys = ON');
-    print('Foreign keys enabled');
+  // Create tables with foreign keys.
+  void _createDB(Database db, int version) {
+    // Puzzle table
+    db.execute('''
+      CREATE TABLE puzzle (
+        puzzle_id INTEGER PRIMARY KEY,
+        puzzle_name TEXT NOT NULL
+      )
+    ''');
+
+    // Scramble_Type table
+    db.execute('''
+      CREATE TABLE scramble_type (
+        scramble_type_id INTEGER PRIMARY KEY,
+        scramble_type_name TEXT NOT NULL,
+        puzzle_id INTEGER NOT NULL,
+        FOREIGN KEY (puzzle_id) REFERENCES puzzle(puzzle_id)
+      )
+    ''');
+
+    // Session table
+    db.execute('''
+      CREATE TABLE session (
+        session_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        puzzle_id INTEGER NOT NULL,
+        session_name TEXT NOT NULL UNIQUE,
+        scramble_type_id INTEGER NOT NULL,
+        FOREIGN KEY (puzzle_id) REFERENCES puzzle(puzzle_id),
+        FOREIGN KEY (scramble_type_id) REFERENCES scramble_type(scramble_type_id)
+      )
+    ''');
+
+    // Solve table
+    db.execute('''
+      CREATE TABLE solve (
+        solve_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        solve_number INTEGER,
+        solve_time INTEGER NOT NULL,
+        is_dnf INTEGER NOT NULL DEFAULT 0,
+        plus_two INTEGER NOT NULL DEFAULT 0,
+        scramble TEXT NOT NULL,
+        comment TEXT,
+        date_time TEXT NOT NULL,
+        session_id INTEGER NOT NULL,
+        reconstruction TEXT,
+        FOREIGN KEY (session_id) REFERENCES session(session_id)
+      )
+    ''');
+
+    // Tag table
+    db.execute('''
+      CREATE TABLE tag (
+        tag_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tag_name TEXT NOT NULL
+      )
+    ''');
+
+    // Solve_Has_Tag table
+    db.execute('''
+      CREATE TABLE solve_has_tag (
+        solve_id INTEGER,
+        tag_id INTEGER,
+        PRIMARY KEY (solve_id, tag_id),
+        FOREIGN KEY (solve_id) REFERENCES solve(solve_id),
+        FOREIGN KEY (tag_id) REFERENCES tag(tag_id)
+      )
+    ''');
+
+    print('Database tables created');
   }
 
-  Future _createDB(Database db, int version) async {
-    await db.execute('''
-    CREATE TABLE puzzle (
-      puzzle_id INTEGER PRIMARY KEY,
-      puzzle_name TEXT NOT NULL
-    )
-    ''');
-    await db.execute('''
-    CREATE TABLE session (
-      session_id INTEGER PRIMARY KEY AUTOINCREMENT,
-      puzzle_id INTEGER NOT NULL,
-      session_name TEXT NOT NULL UNIQUE,
-      FOREIGN KEY (puzzle_id) REFERENCES puzzle (puzzle_id)
-    )
-    ''');
-    await db.execute('''
-    CREATE TABLE solve (
-      solve_id INTEGER PRIMARY KEY AUTOINCREMENT,
-      solve_number INTEGER,
-      solve_time INTEGER NOT NULL,
-      is_dnf INTEGER,
-      plus_two INTEGER,
-      scramble TEXT NOT NULL,
-      comment TEXT,
-      date_time TEXT NOT NULL,
-      session_id INTEGER NOT NULL,
-      reconstruction TEXT,
-      FOREIGN KEY (session_id) REFERENCES session (session_id)
-    )
-    ''');
-    await db.execute('''
-    CREATE TABLE tag (
-      tag_id INTEGER PRIMARY KEY AUTOINCREMENT,
-      tag_name TEXT NOT NULL
-    )
-    ''');
-    await db.execute('''
-    CREATE TABLE solve_has_tag (
-      solve_id INTEGER NOT NULL,
-      tag_id INTEGER NOT NULL,
-      PRIMARY KEY (solve_id, tag_id),
-      FOREIGN KEY (solve_id) REFERENCES solve (solve_id),
-      FOREIGN KEY (tag_id) REFERENCES tag (tag_id)
-    )
-    ''');
-    print('Tables created: puzzle, session, solve, tag, solve_has_tag');
-  }
+  // Insert default puzzles, scramble types, and a session.
+  Future<void> _ensureDefaultData(Database db) async {
+    // Insert puzzles if empty
+    final puzzleCount = await db.query('puzzle');
+    if (puzzleCount.isEmpty) {
+      await db.insert('puzzle', {'puzzle_id': 1, 'puzzle_name': '3x3 Cube'});
+      await db.insert('puzzle', {'puzzle_id': 2, 'puzzle_name': '2x2 Cube'});
+      print('Inserted default puzzles');
+    }
 
-  Future<void> _ensureDefaultData() async {
-    final db = await database;
-    // Insert default puzzles
-    await db.insert('puzzle', {
-      'puzzle_id': 1,
-      'puzzle_name': '3x3 Cube',
-    }, conflictAlgorithm: ConflictAlgorithm.ignore);
-    await db.insert('puzzle', {
-      'puzzle_id': 2,
-      'puzzle_name': '2x2 Cube',
-    }, conflictAlgorithm: ConflictAlgorithm.ignore);
-    // Check if sessions exist
-    final result = await db.rawQuery('SELECT COUNT(*) as count FROM session');
-    final sessionCount = result.first['count'] as int;
-    if (sessionCount == 0) {
+    // Insert scramble types if empty
+    final scrambleTypeCount = await db.query('scramble_type');
+    if (scrambleTypeCount.isEmpty) {
+      await db.insert('scramble_type', {
+        'scramble_type_id': 1,
+        'scramble_type_name': 'WCA',
+        'puzzle_id': 1,
+      });
+      await db.insert('scramble_type', {
+        'scramble_type_id': 2,
+        'scramble_type_name': 'Edges Only',
+        'puzzle_id': 1,
+      });
+      await db.insert('scramble_type', {
+        'scramble_type_id': 3,
+        'scramble_type_name': 'Corners Only',
+        'puzzle_id': 1,
+      });
+      await db.insert('scramble_type', {
+        'scramble_type_id': 4,
+        'scramble_type_name': 'WCA',
+        'puzzle_id': 2,
+      });
+      print('Inserted default scramble types');
+    }
+
+    // Insert default session if empty
+    final sessionCount = await db.query('session');
+    if (sessionCount.isEmpty) {
       await db.insert('session', {
         'puzzle_id': 1,
         'session_name': 'Default 3x3',
-      }, conflictAlgorithm: ConflictAlgorithm.ignore);
-      print('Inserted default session: Default 3x3');
+        'scramble_type_id': 1,
+      });
+      print('Inserted default session');
     }
   }
 
-  Future<int> insertPuzzle(Map<String, dynamic> puzzle) async {
-    final db = await database;
-    final id = await db.insert(
-      'puzzle',
-      puzzle,
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-    print('Inserted puzzle: $puzzle');
-    return id;
-  }
-
+  // Fetch all puzzles
   Future<List<Map<String, dynamic>>> getPuzzles() async {
     final db = await database;
     final puzzles = await db.query('puzzle', orderBy: 'puzzle_name ASC');
     print('Fetched ${puzzles.length} puzzles');
-    return await puzzles;
+    return puzzles;
   }
 
-  Future<int> insertSession(Map<String, dynamic> session) async {
-    final db = await database;
-    final id = await db.insert(
-      'session',
-      session,
-      conflictAlgorithm: ConflictAlgorithm.ignore,
-    );
-    print('Inserted session: $session');
-    return id;
-  }
-
+  // Fetch all sessions
   Future<List<Map<String, dynamic>>> getSessions() async {
     final db = await database;
     final sessions = await db.query('session', orderBy: 'session_name ASC');
@@ -139,6 +175,7 @@ class DatabaseHelper {
     return sessions;
   }
 
+  // Fetch sessions for a specific puzzle
   Future<List<Map<String, dynamic>>> getSessionsByPuzzle(int puzzleId) async {
     final db = await database;
     final sessions = await db.query(
@@ -151,17 +188,24 @@ class DatabaseHelper {
     return sessions;
   }
 
-  Future<int> insertSolve(Map<String, dynamic> solve) async {
+  // Fetch scramble types for a specific puzzle
+  Future<List<Map<String, dynamic>>> getScrambleTypesByPuzzle(
+    int puzzleId,
+  ) async {
     final db = await database;
-    final id = await db.insert(
-      'solve',
-      solve,
-      conflictAlgorithm: ConflictAlgorithm.replace,
+    final scrambleTypes = await db.query(
+      'scramble_type',
+      where: 'puzzle_id = ?',
+      whereArgs: [puzzleId],
+      orderBy: 'scramble_type_name ASC',
     );
-    print('Inserted solve: $solve');
-    return id;
+    print(
+      'Fetched ${scrambleTypes.length} scramble types for puzzle $puzzleId',
+    );
+    return scrambleTypes;
   }
 
+  // Fetch solves for a specific session
   Future<List<Map<String, dynamic>>> getSolves(int sessionId) async {
     final db = await database;
     final solves = await db.query(
@@ -174,77 +218,40 @@ class DatabaseHelper {
     return solves;
   }
 
-  Future<int> getSolveCount(int sessionId) async {
+  // Insert a new session
+  Future<int> insertSession({
+    required int puzzleId,
+    required String sessionName,
+    required int scrambleTypeId,
+  }) async {
     final db = await database;
-    final result = await db.rawQuery(
-      'SELECT COUNT(*) as count FROM solve WHERE session_id = ?',
-      [sessionId],
+    final sessionData = {
+      'puzzle_id': puzzleId,
+      'session_name': sessionName,
+      'scramble_type_id': scrambleTypeId,
+    };
+    try {
+      final id = await db.insert('session', sessionData);
+      print('Inserted session: $sessionName with id $id');
+      return id;
+    } catch (e) {
+      print('Error inserting session: $e');
+      rethrow;
+    }
+  }
+
+  // Get session by ID
+  Future<Map<String, dynamic>?> getSession(int sessionId) async {
+    final db = await database;
+    final sessions = await db.query(
+      'session',
+      where: 'session_id = ?',
+      whereArgs: [sessionId],
+      limit: 1,
     );
-    final count = result.first['count'] as int;
-    print('Solve count for session $sessionId: $count');
-    return count;
-  }
-
-  Future<int> insertTag(Map<String, dynamic> tag) async {
-    final db = await database;
-    final id = await db.insert(
-      'tag',
-      tag,
-      conflictAlgorithm: ConflictAlgorithm.replace,
+    print(
+      'Fetched session $sessionId: ${sessions.isNotEmpty ? sessions.first : null}',
     );
-    print('Inserted tag: $tag');
-    return id;
-  }
-
-  Future<List<Map<String, dynamic>>> getTags() async {
-    final db = await database;
-    final tags = await db.query('tag', orderBy: 'tag_name ASC');
-    print('Fetched ${tags.length} tags');
-    return tags;
-  }
-
-  Future<void> insertSolveTag(int solveId, int tagId) async {
-    final db = await database;
-    await db.insert('solve_has_tag', {
-      'solve_id': solveId,
-      'tag_id': tagId,
-    }, conflictAlgorithm: ConflictAlgorithm.ignore);
-    print('Inserted solve_tag: solve_id=$solveId, tag_id=$tagId');
-  }
-
-  Future<List<Map<String, dynamic>>> getTagsForSolve(int solveId) async {
-    final db = await database;
-    final tags = await db.rawQuery(
-      '''
-      SELECT tag.* FROM tag
-      JOIN solve_has_tag ON tag.tag_id = solve_has_tag.tag_id
-      WHERE solve_has_tag.solve_id = ?
-    ''',
-      [solveId],
-    );
-    print('Fetched ${tags.length} tags for solve $solveId');
-    return tags;
-  }
-
-  Future<List<SolveData>> getSolveDataList(int sessionId) async {
-    final rawSolves = await getSolves(sessionId);
-
-    return rawSolves.map((row) => SolveData(
-      solveNumber: row['solve_num'],
-      sessionId: row['session_id'],
-      solveTime: row['solve_time'],
-      isDNF: (row['is_dnf'] ?? 0) == 1,
-      plusTwo: (row['plus_two'] ?? 0) == 1,
-      dateTime: DateTime.parse(row['date_time']),
-      scramble: row['scramble'] ?? '',
-      reconstruction: row['reconstruction'] ?? '',
-      comment: row['comment'] ?? '',
-    )).toList();
-  }
-
-  Future<void> close() async {
-    final db = await database;
-    await db.close();
-    print('Database closed');
+    return sessions.isNotEmpty ? sessions.first : null;
   }
 }
