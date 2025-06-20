@@ -41,6 +41,7 @@ class TimerLogic {
     _updateState(TimerState.stopped);
     _milliseconds = _stopwatch.elapsedMilliseconds;
     timeNotifier.value = _milliseconds;
+    
   }
 
   void reset() {

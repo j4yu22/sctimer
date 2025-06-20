@@ -50,7 +50,7 @@ class DatabaseHelper {
     await db.execute('''
     CREATE TABLE solve (
       solve_id INTEGER PRIMARY KEY AUTOINCREMENT,
-      solve_number INTEGER NOT NULL,
+      solve_number INTEGER,
       solve_time INTEGER NOT NULL,
       is_dnf INTEGER,
       plus_two INTEGER,
