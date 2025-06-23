@@ -1,244 +1,277 @@
-import 'package:flutter/material.dart';
+import 'dart:developer';
 import 'database_helper.dart';
-import 'dart:async';
 
-// This file provides examples of inserting and retrieving data from the cube timer database.
-// Use these functions as templates in your app (e.g., main.dart or timer_logic.dart).
-// Ensure DatabaseHelper is imported and instantiated before calling these functions.
-// Integration notes are included to guide usage in your multi-session Flutter app.
-
+// DatabaseExamples provides commented examples for using DatabaseHelper functions.
+// Each static method demonstrates one function with realistic use cases,
+// error handling, and explanations for beginners.
+// Use these examples to understand how to integrate DatabaseHelper in your app.
 class DatabaseExamples {
-  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
-
-  // INSERT EXAMPLES
-
-  /// Inserts a new puzzle type (e.g., "Pyraminx").
-  /// Context: Use when adding a new puzzle type, typically during app setup or when a user
-  /// adds a custom puzzle. Called in main.dart's initState or a settings screen.
-  /// Integration:
-  /// - Call in _loadSessions or a UI button handler.
-  /// - Ensure puzzle_id is unique to avoid conflicts (ConflictAlgorithm.replace overwrites).
-  /// - After insertion, refresh puzzles in dropdown (e.g., call getPuzzles and update state).
-  Future<void> insertPuzzleExample() async {
+  // Example for getPuzzles: Fetch all puzzles for a puzzle dropdown.
+  static Future<void> exampleGetPuzzles() async {
+    // Purpose: Fetch all puzzles to populate a puzzle selection dropdown in main.dart.
+    // Input: None.
+    // Output: List<Map<String, dynamic>> where each map has puzzle_id (int) and
+    // puzzle_name (String), e.g., [{"puzzle_id": 1, "puzzle_name": "3x3 Cube"}, ...].
+    log('Running exampleGetPuzzles...');
     try {
-      await _dbHelper.insertPuzzle({'puzzle_id': 3, 'puzzle_name': 'Pyraminx'});
-      print('Puzzle inserted successfully');
+      // Call getPuzzles (async, returns Future, so use await).
+      final puzzles = await DatabaseHelper.instance.getPuzzles();
+
+      // Check if puzzles are empty.
+      if (puzzles.isEmpty) {
+        log('No puzzles found. Check if default data was inserted.');
+        return;
+      }
+
+      // Print each puzzle (simulates populating a dropdown).
+      for (var puzzle in puzzles) {
+        final id = puzzle['puzzle_id'] as int;
+        final name = puzzle['puzzle_name'] as String;
+        log('Puzzle: ID=$id, Name=$name');
+      }
+
+      // App integration: Use in main.dart's _loadPuzzlesAndSessions to populate
+      // _puzzles for a DropdownButtonFormField.
+      // Example: setState(() { _puzzles = puzzles; });
     } catch (e) {
-      print('Error inserting puzzle: $e');
+      log('Error fetching puzzles: $e');
+      // Handle error in app, e.g., show a SnackBar in main.dart.
     }
   }
 
-  /// Inserts a new session for a puzzle (e.g., "Eve's 3x3").
-  /// Context: Use when a user creates a new session via the UI (e.g., "Add Session" dialog).
-  /// Integration:
-  /// - Call in main.dart's _addSession after getting user input (session_name, puzzle_id).
-  /// - puzzle_id must exist in puzzle table (foreign key constraint).
-  /// - session_name must be unique (enforced by UNIQUE constraint).
-  /// - Refresh sessions dropdown after insertion (call getSessions and setState).
-  Future<void> insertSessionExample() async {
+  // Example for getSessions: Fetch all sessions for debugging or fallback UI.
+  static Future<void> exampleGetSessions() async {
+    // Purpose: Fetch all sessions to display a list or debug session data.
+    // Input: None.
+    // Output: List<Map<String, dynamic>> with session_id (int), puzzle_id (int),
+    // session_name (String), scramble_type_id (int), e.g.,
+    // [{"session_id": 1, "puzzle_id": 1, "session_name": "Default 3x3", ...}, ...].
+    log('Running exampleGetSessions...');
     try {
-      await _dbHelper.insertSession({
-        'puzzle_id':
-            1, // Must match an existing puzzle_id (e.g., 1 for 3x3 Cube)
-        'session_name': 'Eve\'s 3x3',
-      });
-      print('Session inserted successfully');
+      final sessions = await DatabaseHelper.instance.getSessions();
+
+      if (sessions.isEmpty) {
+        log('No sessions found. Create a session using insertSession.');
+        return;
+      }
+
+      // Print sessions (simulates displaying in a ListView).
+      for (var session in sessions) {
+        final id = session['session_id'] as int;
+        final name = session['session_name'] as String;
+        final puzzleId = session['puzzle_id'] as int;
+        final scrambleTypeId = session['scramble_type_id'] as int;
+        log(
+          'Session: ID=$id, Name=$name, PuzzleID=$puzzleId, ScrambleTypeID=$scrambleTypeId',
+        );
+      }
+
+      // App integration: Rarely used directly; prefer getSessionsByPuzzle for
+      // puzzle-specific sessions in main.dart's session dropdown.
     } catch (e) {
-      print('Error inserting session: $e');
+      log('Error fetching sessions: $e');
     }
   }
 
-  /// Inserts a solve for a session with optional tags.
-  /// Context: Use when the timer stops (e.g., in TimerLogic's stop method) to save a solve.
-  /// Integration:
-  /// - Call in timer_logic.dart's stop method, passing _milliseconds and session_id.
-  /// - session_id must exist (foreign key constraint).
-  /// - Use user inputs (scramble, is_dnf, plus_two, tags) from main.dart's UI (e.g., TextField, Checkbox).
-  /// - solve_number should increment per session (use getSolveCount).
-  /// - Refresh solve history after insertion (call getSolves and setState in main.dart).
-  Future<void> insertSolveWithTagsExample(
-    int sessionId,
-    int milliseconds,
-  ) async {
+  // Example for getSessionsByPuzzle: Fetch sessions for a specific puzzle.
+  static Future<void> exampleGetSessionsByPuzzle() async {
+    // Purpose: Fetch sessions for a puzzle to populate a session dropdown in main.dart.
+    // Input: puzzleId (int), e.g., 1 for 3x3 Cube.
+    // Output: List<Map<String, dynamic>> with sessions for the puzzle.
+    const puzzleId = 1; // Example: 3x3 Cube (from default data).
+    log('Running exampleGetSessionsByPuzzle for puzzleId=$puzzleId...');
     try {
-      final solveNumber = (await _dbHelper.getSolveCount(sessionId)) + 1;
-      final solveId = await _dbHelper.insertSolve({
-        'solve_number': solveNumber,
-        'solve_time': milliseconds,
-        'is_dnf': 0,
-        'plus_two': 0,
-        'scramble': 'U R F L B',
-        'comment': 'Smooth solve',
-        'date_time': DateTime.now().toIso8601String(),
-        'session_id': sessionId,
-        'reconstruction': 'U R F',
-      });
-      // Insert tags
-      final tagId1 = await _dbHelper.insertTag({'tag_name': 'PB'});
-      await _dbHelper.insertSolveTag(solveId, tagId1);
-      print('Solve and tags inserted successfully');
+      final sessions = await DatabaseHelper.instance.getSessionsByPuzzle(
+        puzzleId,
+      );
+
+      if (sessions.isEmpty) {
+        log(
+          'No sessions for puzzleId=$puzzleId. Create one with insertSession.',
+        );
+        return;
+      }
+
+      // Print sessions (simulates updating a DropdownButtonFormField).
+      for (var session in sessions) {
+        final id = session['session_id'] as int;
+        final name = session['session_name'] as String;
+        log('Session for puzzle $puzzleId: ID=$id, Name=$name');
+      }
+
+      // App integration: Use in main.dart's _loadSessions to update _sessions when
+      // _selectedPuzzleId changes. Example:
+      // setState(() { _sessions = sessions; _selectedSessionId = sessions.first['session_id']; });
     } catch (e) {
-      print('Error inserting solve: $e');
+      log('Error fetching sessions for puzzleId=$puzzleId: $e');
     }
   }
 
-  /// Inserts a tag (e.g., "Good").
-  /// Context: Use when adding a new tag, either automatically (e.g., for DNF) or via user input.
-  /// Integration:
-  /// - Call before insertSolveTag to get tag_id.
-  /// - Typically used in timer_logic.dart's stop method or a tag management UI.
-  /// - tag_name should be unique (ConflictAlgorithm.replace overwrites duplicates).
-  /// - No UI refresh needed unless displaying tags in a dropdown.
-  Future<void> insertTagExample() async {
+  // Example for getScrambleTypesByPuzzle: Fetch scramble types for a specific puzzle.
+  // Use case: Populate scramble type dropdown in main.dart's _addSession dialog.
+  static Future<void> exampleGetScrambleTypesByPuzzle() async {
+    print('\nRunning exampleGetScrambleTypesByPuzzle...');
+    // Example puzzle ID: 1 (3x3 Cube)
+    const puzzleId = 1;
     try {
-      await _dbHelper.insertTag({'tag_name': 'Good'});
-      print('Tag inserted successfully');
+      // Fetch scramble types for puzzleId
+      final scrambleTypes = await DatabaseHelper.instance
+          .getScrambleTypesByPuzzle(puzzleId);
+
+      // scrambleTypes is List<Map<String, dynamic>>, filtered by puzzle_id
+      if (scrambleTypes.isEmpty) {
+        print('No scramble types found for puzzle ID $puzzleId.');
+        return;
+      }
+
+      // Print each scramble type (simulates dropdown population)
+      print(
+        'Found ${scrambleTypes.length} scramble types for puzzle ID $puzzleId:',
+      );
+      for (var scrambleType in scrambleTypes) {
+        final id = scrambleType['scramble_type_id'] as int;
+        final name = scrambleType['scramble_type_name'] as String;
+        print('Scramble Type ID: $id, Name: $name');
+      }
+
+      // App integration: Use in main.dart's _addSession dialog to populate a
+      // scramble type dropdown. Ensures scramble types match the selected puzzle.
+      // Example in _addSession:
+      // DropdownButtonFormField(
+      //   items: scrambleTypes.map((type) => DropdownMenuItem(
+      //     value: type['scramble_type_id'],
+      //     child: Text(type['scramble_type_name']),
+      //   )).toList(),
+      //   onChanged: (value) => setState(() => _selectedScrambleTypeId = value as int),
+      // );
     } catch (e) {
-      print('Error inserting tag: $e');
+      log('Error fetching scramble types for puzzleId=$puzzleId: $e');
     }
   }
 
-  /// Links a solve to a tag (many-to-many relationship).
-  /// Context: Use after inserting a solve and tag to associate them.
-  /// Integration:
-  /// - Call in timer_logic.dart's stop method after insertSolve and insertTag.
-  /// - solve_id and tag_id must exist (foreign key constraints).
-  /// - No UI refresh needed unless tags are displayed in history (handled by getTagsForSolve).
-  Future<void> insertSolveTagExample(int solveId, int tagId) async {
+  // Example for getSolves: Fetch solves for a session to display history.
+  static Future<void> exampleGetSolves() async {
+    // Purpose: Fetch solves for a session to display in a history list or graph.
+    // Input: sessionId (int), e.g., 1 for Default 3x3.
+    // Output: List<Map<String, dynamic>> with solve_id (int), solve_number (int?),
+    // solve_time (int), is_dnf (bool), plus_two (int), scramble (String), etc.
+    const sessionId = 1; // Example: Default 3x3 session.
+    log('Running exampleGetSolves for sessionId=$sessionId...');
     try {
-      await _dbHelper.insertSolveTag(solveId, tagId);
-      print('Solve-tag link inserted successfully');
+      final solves = await DatabaseHelper.instance.getSolves(sessionId);
+
+      if (solves.isEmpty) {
+        log(
+          'No solves for sessionId=$sessionId. Add solves via timer_logic.dart.',
+        );
+        return;
+      }
+
+      // Print solves (simulates ListView in main.dart).
+      for (var solve in solves) {
+        final id = solve['solve_id'] as int;
+        final time =
+            (solve['solve_time'] as int) / 1000.0; // Convert ms to seconds
+        final isDnf = (solve['is_dnf'] as int) == 1;
+        final dateTime = solve['date_time'] as String;
+        log('Solve: ID=$id, Time=$time s, DNF=$isDnf, Date=$dateTime');
+      }
+
+      // App integration: Use in main.dart to populate a solve history ListView or
+      // pass to GraphPage (convert to List<SolveData> if needed).
+      // Example: setState(() => _solvesList = solves);
     } catch (e) {
-      print('Error inserting solve-tag: $e');
+      log('Error fetching solves for sessionId=$sessionId: $e');
     }
   }
 
-  // GET EXAMPLES
-
-  /// Retrieves all puzzles.
-  /// Context: Use to populate a puzzle dropdown (e.g., when adding a session).
-  /// Integration:
-  /// - Call in main.dart's _addSession dialog to display puzzles (e.g., 3x3, 2x2).
-  /// - Use in a FutureBuilder or setState to update UI.
-  /// - Returns List<Map> with puzzle_id and puzzle_name.
-  Future<void> getPuzzlesExample() async {
+  // Example for insertSession: Create a new session for a puzzle.
+  static Future<void> exampleInsertSession() async {
+    // Purpose: Insert a new session with a puzzle, name, and scramble type.
+    // Input: puzzleId (int), sessionName (String), scrambleTypeId (int).
+    // Output: int (new session_id).
+    const puzzleId = 1; // 3x3 Cube
+    const sessionName = 'Edges Only Session'; // Must be unique
+    const scrambleTypeId = 2; // ScrambleType Edges Only (must match puzzleId)
+    log('Running exampleInsertSession for $sessionName...');
     try {
-      final puzzles = await _dbHelper.getPuzzles();
-      print('Puzzles: $puzzles');
+      // Validate scramble type belongs to puzzle (optional, FK ensures integrity).
+      final scrambleTypes = await DatabaseHelper.instance
+          .getScrambleTypesByPuzzle(puzzleId);
+      if (!scrambleTypes.any(
+        (type) => type['scramble_type_id'] == scrambleTypeId,
+      )) {
+        log(
+          'Scramble type ID=$scrambleTypeId not valid for puzzle ID=$puzzleId.',
+        );
+        return;
+      }
+
+      // Insert session
+      final newSessionId = await DatabaseHelper.instance.insertSession(
+        puzzleId: puzzleId,
+        sessionName: sessionName,
+        scrambleTypeId: scrambleTypeId,
+      );
+
+      log('Inserted session: ID=$newSessionId, Name=$sessionName');
+
+      // Verify insertion
+      final session = await DatabaseHelper.instance.getSession(newSessionId);
+      if (session != null) {
+        log('Verified session: ${session['session_name']}');
+      }
+
+      // App integration: Call in main.dart's _addSession after user submits a
+      // with puzzle ID from _selectedPuzzleId, name from TextField, and
+      // scrambleTypeId from dropdown. Update _sessions and _selectedSessionId.
     } catch (e) {
-      print('Error getting puzzles: $e');
+      log('Error inserting session: $e');
+      // Handle in app, e.g., show error if session_name is not unique.
     }
   }
 
-  /// Retrieves all sessions.
-  /// Context: Use to populate the session dropdown in the main UI.
-  /// Integration:
-  /// - Call in main.dart's _loadSessions or after insertSession.
-  /// - Use in a DropdownButton with setState to update _selectedSessionId.
-  /// - Returns List<Map> with session_id, puzzle_id, session_name.
-  Future<void> getSessionsExample() async {
+  // Example for getSession: Fetch a session by ID for scramble generation.
+  static Future<void> exampleGetSession() async {
+    // Purpose: Fetch a session's details, e.g., for timer_logic.dart to get
+    // scramble_type_id for generating scrambles.
+    // Input: sessionId (int), e.g., 1 for Default 3x3.
+    // Output: Map<String, dynamic>? with session_id (int), puzzle_id (int),
+    // session_name (String), scramble_type_id (int), or null if not found.
+    const sessionId = 1; // Example: Default 3x3 session.
+    log('Running exampleGetSession for sessionId=$sessionId...');
     try {
-      final sessions = await _dbHelper.getSessions();
-      print('Sessions: $sessions');
+      final session = await DatabaseHelper.instance.getSession(sessionId);
+
+      if (session == null) {
+        log('No session found for sessionId=$sessionId.');
+        return;
+      }
+
+      // Print session details
+      final id = session['session_id'] as int;
+      final name = session['session_name'] as String;
+      final scrambleTypeId = session['scramble_type_id'] as int;
+      log('Session: ID=$id, Name=$name, ScrambleTypeID=$scrambleTypeId');
+
+      // App integration: Use in timer_logic.dart to get scramble_type_id for
+      // generating puzzle-specific scrambles (e.g., WCA vs. Edges Only).
+      // Example: TimerLogic.setScrambleType(session['scramble_type_id']);
     } catch (e) {
-      print('Error getting sessions: $e');
+      log('Error fetching session for sessionId=$sessionId: $e');
     }
   }
 
-  /// Retrieves solves for a session.
-  /// Context: Use to display solve history for the selected session.
-  /// Integration:
-  /// - Call in main.dart's FutureBuilder for solve history.
-  /// - Pass _selectedSessionId from the dropdown.
-  /// - Use in a ListView.builder to display solves.
-  /// - Returns List<Map> with all solve fields (solve_id, solve_time, etc.).
-  Future<void> getSolvesExample(int sessionId) async {
-    try {
-      final solves = await _dbHelper.getSolves(sessionId);
-      print('Solves for session $sessionId: $solves');
-    } catch (e) {
-      print('Error getting solves: $e');
-    }
-  }
-
-  /// Retrieves the number of solves for a session.
-  /// Context: Use to calculate the next solve_number when inserting a solve.
-  /// Integration:
-  /// - Call in timer_logic.dart's stop method before insertSolve.
-  /// - Pass session_id from TimerLogic's constructor.
-  /// - Returns an integer (e.g., 5 if 5 solves exist).
-  Future<void> getSolveCountExample(int sessionId) async {
-    try {
-      final count = await _dbHelper.getSolveCount(sessionId);
-      print('Solve count for session $sessionId: $count');
-    } catch (e) {
-      print('Error getting solve count: $e');
-    }
-  }
-
-  /// Retrieves all tags.
-  /// Context: Use to populate a tag selection UI (e.g., a tag dropdown or chips).
-  /// Integration:
-  /// - Call in a settings screen or when allowing users to select tags for a solve.
-  /// - Use in a FutureBuilder or setState to update UI.
-  /// - Returns List<Map> with tag_id and tag_name.
-  Future<void> getTagsExample() async {
-    try {
-      final tags = await _dbHelper.getTags();
-      print('Tags: $tags');
-    } catch (e) {
-      print('Error getting tags: $e');
-    }
-  }
-
-  /// Retrieves tags for a specific solve.
-  /// Context: Use to display tags in the solve history (e.g., "PB, DNF").
-  /// Integration:
-  /// - Call in main.dart's solve history ListView.builder, inside a nested FutureBuilder.
-  /// - Pass solve_id from each solve in getSolves.
-  /// - Returns List<Map> with tag_id and tag_name for the solve.
-  Future<void> getTagsForSolveExample(int solveId) async {
-    try {
-      final tags = await _dbHelper.getTagsForSolve(solveId);
-      print('Tags for solve $solveId: $tags');
-    } catch (e) {
-      print('Error getting tags for solve: $e');
-    }
-  }
-
-  // Example usage in a widget (for reference)
-  /// This shows how to integrate some examples in a Flutter widget.
-  /// Copy relevant parts to main.dart or a custom widget.
-  Widget buildExampleWidget(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: insertPuzzleExample,
-              child: const Text('Insert Puzzle'),
-            ),
-            ElevatedButton(
-              onPressed: () => insertSolveWithTagsExample(1, 2340),
-              child: const Text('Insert Solve'),
-            ),
-            ElevatedButton(
-              onPressed: getSessionsExample,
-              child: const Text('Get Sessions'),
-            ),
-            FutureBuilder<List<Map<String, dynamic>>>(
-              future: _dbHelper.getSolves(1),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return Text('Solves: ${snapshot.data!.length}');
-                }
-                return const CircularProgressIndicator();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+  // Run all examples sequentially for testing.
+  static Future<void> runAllExamples() async {
+    log('Starting all database examples...');
+    await exampleGetPuzzles();
+    await exampleGetSessions();
+    await exampleGetSessionsByPuzzle();
+    await exampleGetScrambleTypesByPuzzle();
+    await exampleGetSolves();
+    await exampleInsertSession();
+    await exampleGetSession();
+    log('Completed all database examples.');
   }
 }
