@@ -53,13 +53,13 @@ class _GraphsPageState extends State<GraphsPage> {
               onChanged: (value) {
                 setState(() => selectedSessionId = value);
               },
-              // CHANGE THESE ITEMS TO HAVE VALUE AS THE SESSION ID
+              // CHANGE THESE ITEMS TO HAVE VALUE = SESSION ID
               items: const [
                 DropdownMenuItem(value: null, child: Text('All Sessions')),
                 DropdownMenuItem(value: '3x3', child: Text('3x3')),
                 DropdownMenuItem(value: '4x4', child: Text('4x4')),
                 DropdownMenuItem(value: 'skewb', child: Text('Skewb')),
-                // Add more as needed or populate from DB
+                // Add more as needed, also can populate from DB
               ],
             ),
             const SizedBox(height: 20),
