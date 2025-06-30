@@ -12,7 +12,7 @@ class GraphsPage extends StatefulWidget {
 }
 
 class _GraphsPageState extends State<GraphsPage> {
-  String? selectedPuzzleId;
+  int? selectedPuzzleId;
   bool isLoading = false;
 
   Future<void> _openGraph() async {
@@ -47,19 +47,16 @@ class _GraphsPageState extends State<GraphsPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            DropdownButton<String?>(
+            DropdownButton<int>(
               value: selectedPuzzleId,
               hint: const Text('Select puzzle type'),
               onChanged: (value) {
                 setState(() => selectedPuzzleId = value);
               },
-              // CHANGE THESE ITEMS TO HAVE VALUE = PUZZLE ID
               items: const [
-                DropdownMenuItem(value: null, child: Text('All Puzzles')),
-                DropdownMenuItem(value: '3x3', child: Text('3x3')),
-                DropdownMenuItem(value: '4x4', child: Text('4x4')),
-                DropdownMenuItem(value: 'skewb', child: Text('Skewb')),
-                // Add more as needed, also can populate from DB
+                DropdownMenuItem(value: -1, child: Text('All Puzzles')),
+                DropdownMenuItem(value: 1, child: Text('3x3')),
+                DropdownMenuItem(value: 2, child: Text('2x2')),
               ],
             ),
             const SizedBox(height: 20),

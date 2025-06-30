@@ -35,11 +35,19 @@ class SettingsPageState extends State<SettingsPage> {
                 // var puzzleNames = _dbHelper.getPuzzles().then((var puzzles) {
                 //   for (var item in puzzles)
                 //   {
-                //     var dispItem = item["puzzle_name"];
+                //     var dispItem = item["puzzle_id"];
                 //     print('Puzzle: $dispItem');
                 //   }
                 // });
-                // _dbHelper.insertSession("")
+
+                _dbHelper.getPuzzles().then((puzzles) {
+                  for (var item in puzzles) {
+                    var puzzleId = item["puzzle_id"];
+                    var puzzleName = item["puzzle_name"];
+                    print('Puzzle ID: $puzzleId, Name: $puzzleName');
+                  }
+                });
+
 
               },
             ),

@@ -153,13 +153,13 @@ class GraphPageState extends State<GraphPage> {
           // Puzzle filter dropdown
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: DropdownButton<int>(
+            child: DropdownButton<int?>(
               hint: const Text('Select Puzzle'),
               value: _selectedPuzzleId,
               onChanged: (val) => setState(() => _selectedPuzzleId = val),
               items: [
                 const DropdownMenuItem<int>(
-                  value: null,
+                  value: -1,
                   child: Text('All Puzzles'),
                 ),
                 ..._puzzleIds.map(
