@@ -3,7 +3,7 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 
 class SolveData {
   final int solveNumber;
-  final int sessionId;
+  final int puzzleId;
   final int solveTime; // in milliseconds
   final bool isDNF;
   final bool plusTwo;
@@ -14,7 +14,7 @@ class SolveData {
 
   SolveData({
     required this.solveNumber,
-    required this.sessionId,
+    required this.puzzleId,
     required this.solveTime,
     required this.isDNF,
     required this.plusTwo,
@@ -27,7 +27,7 @@ class SolveData {
   factory SolveData.fromMap(Map<String, dynamic> map) {
     return SolveData(
       solveNumber: map['solve_number'] as int? ?? 0, // Default to 0 if null
-      sessionId: map['session_id'] as int,
+      puzzleId: map['puzzle_id'] as int,
       solveTime: map['solve_time'] as int,
       isDNF: (map['is_dnf'] as int) == 1,
       plusTwo: (map['plus_two'] as int) == 1,
@@ -57,7 +57,7 @@ enum GraphType { raw, ao5, ao12 }
 
 class GraphPageState extends State<GraphPage> {
   late ZoomPanBehavior _zoomPanBehavior;
-  int? _selectedSessionId;
+  int? _selectedPuzzleId;
   bool _showRaw = true;
   bool _showAo5 = false;
   bool _showAo12 = false;
@@ -68,15 +68,15 @@ class GraphPageState extends State<GraphPage> {
     _zoomPanBehavior = widget.zoomController;
   }
 
-  /// All unique session IDs
-  List<int> get _sessionIds =>
-      widget.solveData.map((s) => s.sessionId).toSet().toList()..sort();
+  /// All unique puzzle IDs
+  List<int> get _puzzleIds =>
+      widget.solveData.map((s) => s.puzzleId).toSet().toList()..sort();
 
-  /// Data filtered by selected session
-  List<SolveData> get _sessionFiltered {
-    if (_selectedSessionId == null) return widget.solveData;
+  /// Data filtered by selected puzzle
+  List<SolveData> get _puzzleFiltered {
+    if (_selectedPuzzleId == null) return widget.solveData;
     return widget.solveData
-        .where((s) => s.sessionId == _selectedSessionId)
+        .where((s) => s.puzzleId == _selectedPuzzleId)
         .toList();
   }
 
@@ -93,7 +93,7 @@ class GraphPageState extends State<GraphPage> {
       averaged.add(
         SolveData(
           solveNumber: window.last.solveNumber,
-          sessionId: window.last.sessionId,
+          puzzleId: window.last.puzzleId,
           solveTime: avg,
           isDNF: false,
           plusTwo: false,
@@ -110,9 +110,9 @@ class GraphPageState extends State<GraphPage> {
   @override
   Widget build(BuildContext context) {
     // Prepare series data
-    final rawData = _sessionFiltered;
-    final ao5Data = _calculateRollingAverage(_sessionFiltered, 5);
-    final ao12Data = _calculateRollingAverage(_sessionFiltered, 12);
+    final rawData = _puzzleFiltered;
+    final ao5Data = _calculateRollingAverage(_puzzleFiltered, 5);
+    final ao12Data = _calculateRollingAverage(_puzzleFiltered, 12);
 
     final series = <CartesianSeries<SolveData, DateTime>>[];
     if (_showRaw) {
@@ -150,22 +150,22 @@ class GraphPageState extends State<GraphPage> {
       appBar: AppBar(title: const Text("Rubik's Cube Solve Times")),
       body: Column(
         children: [
-          // Session filter dropdown
+          // Puzzle filter dropdown
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: DropdownButton<int>(
-              hint: const Text('Select Session'),
-              value: _selectedSessionId,
-              onChanged: (val) => setState(() => _selectedSessionId = val),
+              hint: const Text('Select Puzzle'),
+              value: _selectedPuzzleId,
+              onChanged: (val) => setState(() => _selectedPuzzleId = val),
               items: [
                 const DropdownMenuItem<int>(
                   value: null,
-                  child: Text('All Sessions'),
+                  child: Text('All Puzzles'),
                 ),
-                ..._sessionIds.map(
+                ..._puzzleIds.map(
                   (id) => DropdownMenuItem<int>(
                     value: id,
-                    child: Text('Session $id'),
+                    child: Text('Puzzle $id'),
                   ),
                 ),
               ],

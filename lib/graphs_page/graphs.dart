@@ -12,14 +12,14 @@ class GraphsPage extends StatefulWidget {
 }
 
 class _GraphsPageState extends State<GraphsPage> {
-  String? selectedSessionId;
+  String? selectedPuzzleId;
   bool isLoading = false;
 
   Future<void> _openGraph() async {
     setState(() => isLoading = true);
 
     final solveDataList = await DatabaseHelper.instance.getSolves(
-      selectedSessionId as int,
+      selectedPuzzleId as int,
     );
     final solveData = solveDataList.map(SolveData.fromMap).toList();
     setState(() => isLoading = false);
@@ -48,14 +48,14 @@ class _GraphsPageState extends State<GraphsPage> {
         child: Column(
           children: [
             DropdownButton<String?>(
-              value: selectedSessionId,
-              hint: const Text('Select session type'),
+              value: selectedPuzzleId,
+              hint: const Text('Select puzzle type'),
               onChanged: (value) {
-                setState(() => selectedSessionId = value);
+                setState(() => selectedPuzzleId = value);
               },
-              // CHANGE THESE ITEMS TO HAVE VALUE = SESSION ID
+              // CHANGE THESE ITEMS TO HAVE VALUE = PUZZLE ID
               items: const [
-                DropdownMenuItem(value: null, child: Text('All Sessions')),
+                DropdownMenuItem(value: null, child: Text('All Puzzles')),
                 DropdownMenuItem(value: '3x3', child: Text('3x3')),
                 DropdownMenuItem(value: '4x4', child: Text('4x4')),
                 DropdownMenuItem(value: 'skewb', child: Text('Skewb')),
