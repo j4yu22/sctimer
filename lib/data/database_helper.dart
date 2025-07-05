@@ -41,18 +41,18 @@ class DatabaseHelper {
   }
 
   // Create tables with foreign keys.
-  void _createDB(Database db, int version) {
+  void _createDB(Database db, int version) async {
     // Puzzle table
-    db.execute('''
-      CREATE TABLE puzzle (
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS puzzle (
         puzzle_id INTEGER PRIMARY KEY,
         puzzle_name TEXT NOT NULL
       )
     ''');
 
     // Scramble_Type table
-    db.execute('''
-      CREATE TABLE scramble_type (
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS scramble_type (
         scramble_type_id INTEGER PRIMARY KEY,
         scramble_type_name TEXT NOT NULL,
         puzzle_id INTEGER NOT NULL,
@@ -61,8 +61,8 @@ class DatabaseHelper {
     ''');
 
     // Session table
-    db.execute('''
-      CREATE TABLE session (
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS session (
         session_id INTEGER PRIMARY KEY AUTOINCREMENT,
         puzzle_id INTEGER NOT NULL,
         session_name TEXT NOT NULL UNIQUE,
@@ -73,8 +73,8 @@ class DatabaseHelper {
     ''');
 
     // Solve table
-    db.execute('''
-      CREATE TABLE solve (
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS solve (
         solve_id INTEGER PRIMARY KEY AUTOINCREMENT,
         solve_number INTEGER,
         solve_time INTEGER NOT NULL,
@@ -90,16 +90,16 @@ class DatabaseHelper {
     ''');
 
     // Tag table
-    db.execute('''
-      CREATE TABLE tag (
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS tag (
         tag_id INTEGER PRIMARY KEY AUTOINCREMENT,
         tag_name TEXT NOT NULL
       )
     ''');
 
     // Solve_Has_Tag table
-    db.execute('''
-      CREATE TABLE solve_has_tag (
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS solve_has_tag (
         solve_id INTEGER,
         tag_id INTEGER,
         PRIMARY KEY (solve_id, tag_id),
