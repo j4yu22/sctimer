@@ -4,7 +4,6 @@ import 'timer/timer_ui.dart';
 import 'time_display/time_display_ui.dart';
 import 'scramble/scramble_ui.dart';
 import '../header/header_ui.dart';
-import '/data/database_helper.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

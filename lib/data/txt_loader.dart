@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import '../graphs_page/graph/graph_logic.dart';
 import '../settings_page/settings.dart';
 
 Future<List<Solve>> loadSolveDataFromText() async {
