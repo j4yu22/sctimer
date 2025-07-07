@@ -4,8 +4,15 @@ import '../settings_page/settings.dart';
 import '../stats_page/stats.dart';
 import '../graphs_page/graphs.dart';
 import '../times_page/times.dart';
+import '../data/database_helper.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfi;
+
+  await DatabaseHelper.instance.database;
   runApp(const MyApp());
 }
 

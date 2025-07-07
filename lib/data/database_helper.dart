@@ -41,7 +41,7 @@ class DatabaseHelper {
   }
 
   // Create tables with foreign keys.
-  void _createDB(Database db, int version) async {
+  Future<void> _createDB(Database db, int version) async {
     // Puzzle table
     await db.execute('''
       CREATE TABLE IF NOT EXISTS puzzle (
@@ -51,14 +51,18 @@ class DatabaseHelper {
     ''');
 
     // Scramble_Type table
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS scramble_type (
-        scramble_type_id INTEGER PRIMARY KEY,
-        scramble_type_name TEXT NOT NULL,
-        puzzle_id INTEGER NOT NULL,
-        FOREIGN KEY (puzzle_id) REFERENCES puzzle(puzzle_id)
-      )
-    ''');
+    try {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS scramble_type (
+          scramble_type_id INTEGER PRIMARY KEY,
+          scramble_type_name TEXT NOT NULL,
+          puzzle_id INTEGER NOT NULL,
+          FOREIGN KEY (puzzle_id) REFERENCES puzzle(puzzle_id)
+        )
+      ''');
+    } catch (e) {
+      print("Error creating table scramble_type, $e");
+    }
 
     // Session table
     await db.execute('''
