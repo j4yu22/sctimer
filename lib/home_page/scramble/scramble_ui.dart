@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 
-class ScrambleUI extends StatefulWidget{
+class ScrambleUI extends StatefulWidget {
+  const ScrambleUI({super.key});
+
   @override
   State<ScrambleUI> createState() => ScrambleUIWidget();
 }
 
 class ScrambleUIWidget extends State<ScrambleUI> {
-  late String _scramble = GetNewScramble();
+  late final String _scramble = GetNewScramble();
 
-  String GetNewScramble()
-  {
+  String GetNewScramble() {
     return "";
   }
 
