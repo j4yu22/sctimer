@@ -10,7 +10,9 @@ class TimesPage extends StatelessWidget {
     return PopScope(
       canPop: false,
       child: Scaffold(
-        body: Column(children: [HeaderUI(), Expanded(child: SliverGridWidget()), Footer()]),
+        body: Column(
+          children: [HeaderUI(), Expanded(child: SliverGridWidget()), Footer()],
+        ),
       ),
     );
   }
@@ -29,7 +31,7 @@ class TimeBlock extends StatelessWidget {
   // This is used for the click event on the InkWell when it opens the floating dialogue box to show more info about the solve
 
   TimeBlock({
-    Key? key,
+    super.key,
     int pk = 0,
     double time = 0,
     String comment = "",
@@ -37,12 +39,12 @@ class TimeBlock extends StatelessWidget {
     int penalty = 0,
     String date = "0/0/0",
     bool dnf = false,
-  }) : super(key: key) {
+  }) {
     _time = time;
     _comment = comment;
     if (penalty != 0) {
       penalty = penalty * 2;
-      _penalty = "   +" + penalty.toString();
+      _penalty = "   +$penalty";
     } else {
       _penalty = "";
     }
@@ -531,7 +533,7 @@ class SliverGridState extends State<SliverGridWidget> {
           time: 2.35,
           date: "11/11/2125",
           scramble: "R2 L2 R2 L2 R2 L2 F2",
-        )
+        ),
       ]);
       isLoading = false;
     });

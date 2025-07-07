@@ -18,7 +18,7 @@ class TimerUI extends StatefulWidget {
 }
 
 class _TimerUIState extends State<TimerUI> {
-  bool _cancelledBySwipe = false;
+  final bool _cancelledBySwipe = false;
   bool _isHolding = false;
   bool _primed = false;
   final Duration _holdDuration = const Duration(milliseconds: 300);

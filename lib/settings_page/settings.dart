@@ -6,7 +6,7 @@ import 'package:sctimer/footer/footer_ui.dart';
 import 'package:sctimer/data/database_helper.dart';
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({Key? key}) : super(key: key);
+  const SettingsPage({super.key});
 
   @override
   SettingsPageState createState() => SettingsPageState();
@@ -15,7 +15,7 @@ class SettingsPage extends StatefulWidget {
 class SettingsPageState extends State<SettingsPage> {
   SettingsPageState();
 
-  DatabaseHelper _dbHelper = DatabaseHelper.instance;
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -47,8 +47,6 @@ class SettingsPageState extends State<SettingsPage> {
                     print('Puzzle ID: $puzzleId, Name: $puzzleName');
                   }
                 });
-
-
               },
             ),
             Footer(),
@@ -67,8 +65,15 @@ class Solve {
   late String? _comment;
   late DateTime _date;
   late String? _reconstruction;
-  Solve(int solveTime, String scramble, DateTime date, String? comment, String? reconstruction, [bool dnf = false, int plus2 = 0])
-  {
+  Solve(
+    int solveTime,
+    String scramble,
+    DateTime date,
+    String? comment,
+    String? reconstruction, [
+    bool dnf = false,
+    int plus2 = 0,
+  ]) {
     _solveTime = solveTime;
     _dnf = dnf;
     _plus2 = plus2;
@@ -78,8 +83,7 @@ class Solve {
     _reconstruction = reconstruction;
   }
 
-  Map<String, dynamic> GetDBMap()
-  {
+  Map<String, dynamic> GetDBMap() {
     Map<String, dynamic> dbValues = {};
     dbValues["solve_time"] = _solveTime;
     dbValues["is_dnf"] = _dnf;
