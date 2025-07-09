@@ -193,16 +193,23 @@ class _HeaderUIState extends State<HeaderUI> {
         border: Border.all(),
         borderRadius: BorderRadius.circular(6),
       ),
+      // Constrain the width of the dropdown
+      constraints: const BoxConstraints(maxWidth: 110), // Adjust as needed
       child: DropdownButton<int>(
+        isExpanded: true, // Forces the button to fill available width
         value: value,
-        hint: Text(label),
+        hint: Text(label, overflow: TextOverflow.ellipsis, softWrap: false),
         icon: const Icon(Icons.arrow_drop_down),
         underline: const SizedBox(),
         items:
             items.map((item) {
               return DropdownMenuItem<int>(
                 value: item[valueKey] as int,
-                child: Text(item[displayKey] as String),
+                child: Text(
+                  item[displayKey] as String,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                ),
               );
             }).toList(),
         onChanged: items.isNotEmpty ? onChanged : null,
@@ -228,82 +235,99 @@ class _HeaderUIState extends State<HeaderUI> {
                       Navigator.pushNamed(context, '/settings');
                     },
                   ),
-                  Row(
-                    children: [
-                      _buildDropdown(
-                        label: 'Puzzle',
-                        items: _puzzleList,
-                        valueKey: 'puzzle_id',
-                        displayKey: 'puzzle_name',
-                        value: _selectedPuzzleId,
-                        onChanged: (value) async {
-                          setState(() => _isLoading = true);
-                          try {
-                            setState(() {
-                              _selectedPuzzleId = value;
-                              _selectedSessionId = null;
-                              _selectedScrambleTypeId = null;
-                            });
-                            widget.onSessionChanged?.call(null);
-                            if (value != null) {
-                              await _loadSessions(value);
-                              if (_sessionList.isNotEmpty) {
-                                await _loadScrambleTypes(value);
-                              }
-                            }
-                          } catch (e) {
-                            print('Error updating puzzle: $e');
-                          } finally {
-                            setState(() => _isLoading = false);
-                          }
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      _buildDropdown(
-                        label: 'Session',
-                        items: _sessionDropdownItems,
-                        valueKey: 'session_id',
-                        displayKey: 'session_name',
-                        value: _selectedSessionId,
-                        onChanged: (value) async {
-                          if (value == -1) {
-                            await _addSession();
-                          } else {
-                            setState(() => _isLoading = true);
-                            try {
-                              setState(() => _selectedSessionId = value);
-                              widget.onSessionChanged?.call(value);
-                              if (value != null) {
-                                final session = await DatabaseHelper.instance
-                                    .getSession(value);
-                                if (session != null) {
-                                  setState(
-                                    () =>
-                                        _selectedScrambleTypeId =
-                                            session['scramble_type_id'] as int,
-                                  );
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: _buildDropdown(
+                              label: 'Puzzle',
+                              items: _puzzleList,
+                              valueKey: 'puzzle_id',
+                              displayKey: 'puzzle_name',
+                              value: _selectedPuzzleId,
+                              onChanged: (value) async {
+                                setState(() => _isLoading = true);
+                                try {
+                                  setState(() {
+                                    _selectedPuzzleId = value;
+                                    _selectedSessionId = null;
+                                    _selectedScrambleTypeId = null;
+                                  });
+                                  widget.onSessionChanged?.call(null);
+                                  if (value != null) {
+                                    await _loadSessions(value);
+                                    if (_sessionList.isNotEmpty) {
+                                      await _loadScrambleTypes(value);
+                                    }
+                                  }
+                                } catch (e) {
+                                  print('Error updating puzzle: $e');
+                                } finally {
+                                  setState(() => _isLoading = false);
                                 }
-                              }
-                            } catch (e) {
-                              print('Error updating session: $e');
-                            } finally {
-                              setState(() => _isLoading = false);
-                            }
-                          }
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      _buildDropdown(
-                        label: 'Scramble Type',
-                        items: _scrambleTypeList,
-                        valueKey: 'scramble_type_id',
-                        displayKey: 'scramble_type_name',
-                        value: _selectedScrambleTypeId,
-                        onChanged: (value) {
-                          setState(() => _selectedScrambleTypeId = value);
-                        },
-                      ),
-                    ],
+                              },
+                            ),
+                          ),
+                        ),
+                        Flexible(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: _buildDropdown(
+                              label: 'Session',
+                              items: _sessionDropdownItems,
+                              valueKey: 'session_id',
+                              displayKey: 'session_name',
+                              value: _selectedSessionId,
+                              onChanged: (value) async {
+                                if (value == -1) {
+                                  await _addSession();
+                                } else {
+                                  setState(() => _isLoading = true);
+                                  try {
+                                    setState(() => _selectedSessionId = value);
+                                    widget.onSessionChanged?.call(value);
+                                    if (value != null) {
+                                      final session = await DatabaseHelper
+                                          .instance
+                                          .getSession(value);
+                                      if (session != null) {
+                                        setState(
+                                          () =>
+                                              _selectedScrambleTypeId =
+                                                  session['scramble_type_id']
+                                                      as int,
+                                        );
+                                      }
+                                    }
+                                  } catch (e) {
+                                    print('Error updating session: $e');
+                                  } finally {
+                                    setState(() => _isLoading = false);
+                                  }
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                        Flexible(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: _buildDropdown(
+                              label: 'Scramble Type',
+                              items: _scrambleTypeList,
+                              valueKey: 'scramble_type_id',
+                              displayKey: 'scramble_type_name',
+                              value: _selectedScrambleTypeId,
+                              onChanged: (value) {
+                                setState(() => _selectedScrambleTypeId = value);
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.build),
