@@ -8,7 +8,12 @@ class StatsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      child: Scaffold(body: Column(children: [Text("Stats page"), Footer()])),
+      child: Scaffold(
+        body: SafeArea(
+          // ← wrap body in SafeArea
+          child: Column(children: [Text("Stats page"), Footer()]),
+        ),
+      ),
     );
   }
 }

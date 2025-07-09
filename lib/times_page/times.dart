@@ -541,13 +541,16 @@ class SliverGridState extends State<SliverGridWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return GridView(
-      controller: scrollController,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisExtent: 80.0,
+    return SafeArea(
+      // ← Add this line
+      child: GridView(
+        controller: scrollController,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          mainAxisExtent: 80.0,
+        ),
+        children: timeBlockList,
       ),
-      children: timeBlockList,
     );
   }
 }
