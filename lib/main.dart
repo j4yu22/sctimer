@@ -5,9 +5,18 @@ import '../stats_page/stats.dart';
 import '../graphs_page/graphs.dart';
 import '../times_page/times.dart';
 import '../data/database_helper.dart';
+import 'dart:io';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize FFI for desktop platforms
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
+
   await DatabaseHelper.instance.database;
   runApp(const MyApp());
 }
