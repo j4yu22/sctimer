@@ -22,35 +22,30 @@ class SettingsPageState extends State<SettingsPage> {
     return PopScope(
       canPop: false,
       child: Scaffold(
-        body: Column(
-          children: [
-            Text("Settings page"),
-            IconButton(
-              icon: Icon(Icons.access_alarm),
-              style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all(Colors.blue),
-                foregroundColor: WidgetStateProperty.all(Colors.white),
+        body: SafeArea(
+          // ← Added SafeArea here
+          child: Column(
+            children: [
+              Text("Settings page"),
+              IconButton(
+                icon: Icon(Icons.access_alarm),
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(Colors.blue),
+                  foregroundColor: WidgetStateProperty.all(Colors.white),
+                ),
+                onPressed: () {
+                  _dbHelper.getPuzzles().then((puzzles) {
+                    for (var item in puzzles) {
+                      var puzzleId = item["puzzle_id"];
+                      var puzzleName = item["puzzle_name"];
+                      print('Puzzle ID: $puzzleId, Name: $puzzleName');
+                    }
+                  });
+                },
               ),
-              onPressed: () {
-                // var puzzleNames = _dbHelper.getPuzzles().then((var puzzles) {
-                //   for (var item in puzzles)
-                //   {
-                //     var dispItem = item["puzzle_id"];
-                //     print('Puzzle: $dispItem');
-                //   }
-                // });
-
-                _dbHelper.getPuzzles().then((puzzles) {
-                  for (var item in puzzles) {
-                    var puzzleId = item["puzzle_id"];
-                    var puzzleName = item["puzzle_name"];
-                    print('Puzzle ID: $puzzleId, Name: $puzzleName');
-                  }
-                });
-              },
-            ),
-            Footer(),
-          ],
+              Footer(),
+            ],
+          ),
         ),
       ),
     );
