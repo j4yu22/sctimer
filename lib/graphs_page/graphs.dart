@@ -43,33 +43,38 @@ class _GraphsPageState extends State<GraphsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Graphs')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            DropdownButton<int>(
-              value: selectedPuzzleId,
-              hint: const Text('Select puzzle type'),
-              onChanged: (value) {
-                setState(() => selectedPuzzleId = value);
-              },
-              items: const [
-                DropdownMenuItem(value: -1, child: Text('All Puzzles')),
-                DropdownMenuItem(value: 1, child: Text('3x3')),
-                DropdownMenuItem(value: 2, child: Text('2x2')),
-              ],
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: isLoading ? null : _openGraph,
-              child:
-                  isLoading
-                      ? const CircularProgressIndicator()
-                      : const Text('Show Graph'),
-            ),
-          ],
+
+      // Wrap the body in SafeArea to avoid OS intrusions
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              DropdownButton<int>(
+                value: selectedPuzzleId,
+                hint: const Text('Select puzzle type'),
+                onChanged: (value) {
+                  setState(() => selectedPuzzleId = value);
+                },
+                items: const [
+                  DropdownMenuItem(value: -1, child: Text('All Puzzles')),
+                  DropdownMenuItem(value: 1, child: Text('3x3')),
+                  DropdownMenuItem(value: 2, child: Text('2x2')),
+                ],
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: isLoading ? null : _openGraph,
+                child:
+                    isLoading
+                        ? const CircularProgressIndicator()
+                        : const Text('Show Graph'),
+              ),
+            ],
+          ),
         ),
       ),
+
       bottomNavigationBar: const Footer(),
     );
   }
