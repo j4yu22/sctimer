@@ -6,7 +6,7 @@ class SolveData {
   final int puzzleId;
   final int solveTime; // in milliseconds
   final bool isDNF;
-  final bool plusTwo;
+  final int plusTwo;
   final DateTime dateTime;
   final String scramble;
   final String reconstruction;
@@ -30,7 +30,7 @@ class SolveData {
       puzzleId: map['puzzle_id'] as int,
       solveTime: map['solve_time'] as int,
       isDNF: (map['is_dnf'] as int) == 1,
-      plusTwo: (map['plus_two'] as int) == 1,
+      plusTwo: map['plus_two'] as int,
       dateTime: DateTime.parse(map['date_time'] as String),
       scramble: map['scramble'] as String,
       reconstruction:
@@ -96,7 +96,7 @@ class GraphPageState extends State<GraphPage> {
           puzzleId: window.last.puzzleId,
           solveTime: avg,
           isDNF: false,
-          plusTwo: false,
+          plusTwo: 1,
           dateTime: window.last.dateTime,
           scramble: '',
           reconstruction: window.last.reconstruction,
