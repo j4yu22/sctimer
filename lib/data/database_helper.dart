@@ -244,6 +244,38 @@ class DatabaseHelper {
     }
   }
 
+  // Insert a new solve
+  Future<int> insertSolve({
+    required int sessionId,
+    required int solveTime,
+    required bool isDnf,
+    required int plusTwo,
+    required String scramble,
+    required String comment,
+    required String reconstruction,
+    required DateTime dateTime,
+  }) async {
+    final db = await database;
+    final solveData = {
+      'session_id': sessionId,
+      'solve_time': solveTime,
+      'is_dnf': isDnf ? 1 : 0,
+      'plus_two': plusTwo,
+      'scramble': scramble,
+      'comment': comment,
+      'reconstruction': reconstruction,
+      'date_time': dateTime.toIso8601String(),
+    };
+    try {
+      final id = await db.insert('solve', solveData);
+      print('Inserted solve with id $id');
+      return id;
+    } catch (e) {
+      print('Error inserting solve: $e');
+      rethrow;
+    }
+  }
+
   // Get session by ID
   Future<Map<String, dynamic>?> getSession(int sessionId) async {
     final db = await database;

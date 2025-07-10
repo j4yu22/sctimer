@@ -14,10 +14,17 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool _showFullscreenTimer = false;
+  int? _selectedSessionId; // <-- already present
 
   void _setFullscreen(bool value) {
     setState(() {
       _showFullscreenTimer = value;
+    });
+  }
+
+  void _onSessionChanged(int? sessionId) {
+    setState(() {
+      _selectedSessionId = sessionId;
     });
   }
 
@@ -31,19 +38,27 @@ class _HomePageState extends State<HomePage> {
             children: [
               Column(
                 children: [
-                  HeaderUI(),
+                  HeaderUI(
+                    selectedSessionId: _selectedSessionId,
+                    onSessionChanged: _onSessionChanged,
+                  ),
                   ScrambleUI(),
-                  Expanded(child: TimerUI(onFullscreenChange: _setFullscreen)),
+                  Expanded(
+                    child: TimerUI(
+                      sessionId: _selectedSessionId, // <-- pass sessionId here
+                      onFullscreenChange: _setFullscreen,
+                    ),
+                  ),
                   TimeDisplayUI(),
                   Footer(),
                 ],
               ),
-
-              // Fullscreen overlay only when _showFullscreenTimer is true
               if (_showFullscreenTimer)
                 Positioned.fill(
                   child: TimerUI(
                     isFullscreen: true,
+                    sessionId:
+                        _selectedSessionId, // <-- pass sessionId here too
                     onFullscreenChange: _setFullscreen,
                   ),
                 ),
