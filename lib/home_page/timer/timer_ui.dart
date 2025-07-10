@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import '../../data/database_helper.dart'; // <-- import your db helper
 import 'timer_logic.dart';
 import 'fullscreen_timer.dart';
 
-// remove time, dnf, +2 seconds, comment
 class TimerUI extends StatefulWidget {
   final bool isFullscreen;
   final void Function(bool)? onFullscreenChange;
+  final int? sessionId; // <-- add this
 
   const TimerUI({
     super.key,
     this.isFullscreen = false,
     this.onFullscreenChange,
+    this.sessionId, // <-- add this
   });
 
   @override
@@ -61,10 +63,31 @@ class _TimerUIState extends State<TimerUI> {
       Navigator.of(context).push(
         MaterialPageRoute(
           fullscreenDialog: true,
-          builder: (_) => FullscreenTimerPage(logic: _logic),
+          builder:
+              (_) => FullscreenTimerPage(
+                logic: _logic,
+                onTimerStop: _onTimerStop, // <-- pass callback
+              ),
         ),
       );
     }
+  }
+
+  // This function will be called when the timer stops
+  Future<void> _onTimerStop(int milliseconds) async {
+    if (widget.sessionId == null) return; // Don't insert if no session selected
+
+    await DatabaseHelper.instance.insertSolve(
+      sessionId: widget.sessionId!,
+      solveTime: milliseconds,
+      isDnf: false,
+      plusTwo: 0,
+      scramble: "N/A",
+      comment: "",
+      reconstruction: "",
+      dateTime: DateTime.now(),
+    );
+    // Optionally: setState or show a snackbar/refresh UI here
   }
 
   @override

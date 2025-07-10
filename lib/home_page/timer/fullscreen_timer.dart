@@ -1,44 +1,29 @@
 import 'package:flutter/material.dart';
 import 'timer_logic.dart';
 
-class FullscreenTimerPage extends StatefulWidget {
+class FullscreenTimerPage extends StatelessWidget {
   final TimerLogic logic;
+  final void Function(int)? onTimerStop; // <-- add this
 
-  const FullscreenTimerPage({super.key, required this.logic});
-
-  @override
-  State<FullscreenTimerPage> createState() => _FullscreenTimerPageState();
-}
-
-class _FullscreenTimerPageState extends State<FullscreenTimerPage> {
-  DateTime? _timerStartTime;
-  final Duration _minRunTime = const Duration(milliseconds: 200);
-
-  @override
-  void initState() {
-    super.initState();
-    _timerStartTime = DateTime.now();
-    widget.logic.start();
-  }
-
-  void _stopTimerAndExit() {
-    final now = DateTime.now();
-    if (_timerStartTime != null &&
-        now.difference(_timerStartTime!) >= _minRunTime) {
-      widget.logic.stop();
-      Navigator.of(context).pop(); // Go back to main view
-    }
-  }
+  const FullscreenTimerPage({
+    super.key,
+    required this.logic,
+    this.onTimerStop, // <-- add this
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: _stopTimerAndExit,
+      onTap: () {
+        final finalMilliseconds = logic.timeNotifier.value;
+        onTimerStop?.call(finalMilliseconds);
+        Navigator.of(context).pop(); // Go back to main view
+      },
       child: Scaffold(
         backgroundColor: Colors.black,
         body: Center(
           child: ValueListenableBuilder<int>(
-            valueListenable: widget.logic.timeNotifier,
+            valueListenable: logic.timeNotifier,
             builder: (context, milliseconds, _) {
               final seconds = (milliseconds / 1000).floor();
               final ms = (milliseconds % 1000) ~/ 10;
