@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../data/database_helper.dart'; // <-- import your db helper
+import '../../data/database_helper.dart';
 import 'timer_logic.dart';
 import 'fullscreen_timer.dart';
 
@@ -8,6 +8,7 @@ class TimerUI extends StatefulWidget {
   final void Function(bool)? onFullscreenChange;
   final int? sessionId;
   final VoidCallback? onScrambleRefresh;
+  final ValueNotifier<int> updateNotifier; // Added
 
   const TimerUI({
     super.key,
@@ -15,6 +16,7 @@ class TimerUI extends StatefulWidget {
     this.onFullscreenChange,
     this.sessionId,
     this.onScrambleRefresh,
+    required this.updateNotifier, // Added
   });
 
   @override
@@ -35,7 +37,7 @@ class _TimerUIState extends State<TimerUI> {
 
   @override
   void dispose() {
-    _logic.endTimer(); // Changed to endTimer for cleanup
+    _logic.endTimer();
     super.dispose();
   }
 
@@ -49,7 +51,7 @@ class _TimerUIState extends State<TimerUI> {
       if (mounted && _isHolding) {
         setState(() {
           _primed = true;
-          _logic.prepareStart(); // Reset and prepare timer
+          _logic.prepareStart();
         });
       }
     });
@@ -81,32 +83,49 @@ class _TimerUIState extends State<TimerUI> {
               logic: _logic,
               onTimerStop: _onTimerStop,
               onScrambleRefresh: widget.onScrambleRefresh,
+              updateNotifier: widget.updateNotifier, // Added
             ),
       ),
     );
   }
 
   Future<void> _onTimerStop(int milliseconds) async {
-    if (widget.sessionId == null) return;
+    if (widget.sessionId == null) {
+      print('TimerUI: No sessionId provided, skipping insertion');
+      return;
+    }
 
-    await DatabaseHelper.instance.insertSolve(
-      sessionId: widget.sessionId!,
-      solveTime: milliseconds,
-      isDnf: false,
-      plusTwo: 0,
-      scramble: "N/A",
-      comment: "",
-      reconstruction: "",
-      dateTime: DateTime.now(),
+    print(
+      'TimerUI: Attempting to insert solve for sessionId = ${widget.sessionId}, time = $milliseconds ms',
     );
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Time saved: ${(milliseconds / 1000.0).toStringAsFixed(2)}s',
-          ),
-        ),
+    try {
+      final sessionExists = await DatabaseHelper.instance.getSession(
+        widget.sessionId!,
       );
+      print(
+        'TimerUI: Session exists = ${sessionExists != null}, session = $sessionExists',
+      );
+      if (sessionExists == null) {
+        print('TimerUI: Invalid sessionId = ${widget.sessionId}, no insertion');
+        return;
+      }
+      final solveData = {
+        'session_id': widget.sessionId!,
+        'solve_time': milliseconds,
+        'is_dnf': 0,
+        'plus_two': 0,
+        'scramble': 'N/A',
+        'comment': '',
+        'reconstruction': '',
+        'date_time': DateTime.now().toIso8601String(),
+      };
+      print('TimerUI: Solve data = $solveData');
+      final db = await DatabaseHelper.instance.database;
+      final solveId = await db.insert('solve', solveData);
+      print('TimerUI: Solve inserted with solve_id = $solveId');
+      widget.updateNotifier.value++;
+    } catch (e, stackTrace) {
+      print('TimerUI: Error inserting solve: $e, stackTrace: $stackTrace');
     }
   }
 

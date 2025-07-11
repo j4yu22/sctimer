@@ -14,10 +14,10 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool _showFullscreenTimer = false;
-  int? _selectedSessionId; // <-- already present
-
+  int? _selectedSessionId;
   final GlobalKey<ScrambleUIWidget> _scrambleKey =
       GlobalKey<ScrambleUIWidget>();
+  final ValueNotifier<int> _updateNotifier = ValueNotifier<int>(0); // Added
 
   void _handleScrambleRefresh() {
     print('[HomePage] _handleScrambleRefresh called');
@@ -33,6 +33,7 @@ class _HomePageState extends State<HomePage> {
   void _onSessionChanged(int? sessionId) {
     setState(() {
       _selectedSessionId = sessionId;
+      print('HomePage: Session changed to $_selectedSessionId'); // Added
     });
   }
 
@@ -53,12 +54,16 @@ class _HomePageState extends State<HomePage> {
                   ScrambleUI(key: _scrambleKey),
                   Expanded(
                     child: TimerUI(
-                      sessionId: _selectedSessionId, // <-- pass sessionId here
+                      sessionId: _selectedSessionId,
                       onFullscreenChange: _setFullscreen,
                       onScrambleRefresh: _handleScrambleRefresh,
+                      updateNotifier: _updateNotifier, // Added
                     ),
                   ),
-                  TimeDisplayUI(),
+                  TimeDisplayUI(
+                    sessionId: _selectedSessionId,
+                    updateNotifier: _updateNotifier, // Added
+                  ),
                   Footer(),
                 ],
               ),
@@ -66,10 +71,10 @@ class _HomePageState extends State<HomePage> {
                 Positioned.fill(
                   child: TimerUI(
                     isFullscreen: true,
-                    sessionId:
-                        _selectedSessionId, // <-- pass sessionId here too
+                    sessionId: _selectedSessionId,
                     onFullscreenChange: _setFullscreen,
                     onScrambleRefresh: _handleScrambleRefresh,
+                    updateNotifier: _updateNotifier, // Added
                   ),
                 ),
             ],

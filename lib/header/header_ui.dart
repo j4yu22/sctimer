@@ -50,24 +50,48 @@ class _HeaderUIState extends State<HeaderUI> {
       }
       setState(() {
         _puzzleList = puzzles;
-        _selectedPuzzleId = puzzles.first['puzzle_id'] as int;
+        _selectedPuzzleId =
+            puzzles.firstWhere(
+                  (p) => p['puzzle_name'] == '3x3 Cube',
+                )['puzzle_id']
+                as int;
       });
-      await _loadSessions(_selectedPuzzleId!);
-      if (widget.selectedSessionId != null) {
+      final sessions = await DatabaseHelper.instance.getSessionsByPuzzle(
+        _selectedPuzzleId!,
+      );
+      final defaultSession = sessions.firstWhere(
+        (s) => s['session_name'] == 'Default 3x3',
+        orElse: () => <String, dynamic>{},
+      );
+      setState(() {
+        _sessionList = sessions;
+        _selectedSessionId =
+            defaultSession.isNotEmpty
+                ? defaultSession['session_id'] as int
+                : null;
+      });
+      if (_selectedSessionId != null) {
         final session = await DatabaseHelper.instance.getSession(
-          widget.selectedSessionId!,
+          _selectedSessionId!,
         );
-        if (session != null && session['puzzle_id'] == _selectedPuzzleId) {
-          setState(() {
-            _selectedSessionId = session['session_id'] as int;
-            _selectedScrambleTypeId = session['scramble_type_id'] as int;
-          });
-        } else {
-          await _loadScrambleTypes(_selectedPuzzleId!);
-        }
-      } else {
+        setState(() {
+          _selectedScrambleTypeId = session?['scramble_type_id'] as int?;
+        });
         await _loadScrambleTypes(_selectedPuzzleId!);
+        if (_scrambleTypeList.isNotEmpty) {
+          final wcaScramble = _scrambleTypeList.firstWhere(
+            (s) => s['scramble_type_name'] == 'WCA',
+            orElse: () => _scrambleTypeList.first,
+          );
+          setState(
+            () =>
+                _selectedScrambleTypeId =
+                    wcaScramble['scramble_type_id'] as int,
+          );
+        }
       }
+      widget.onSessionChanged?.call(_selectedSessionId);
+      print('HeaderUI: Initialized with sessionId = $_selectedSessionId');
     } catch (e) {
       print('Error loading initial data: $e');
     } finally {

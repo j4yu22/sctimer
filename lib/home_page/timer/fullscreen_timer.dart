@@ -5,12 +5,14 @@ class FullscreenTimerPage extends StatefulWidget {
   final TimerLogic logic;
   final void Function(int)? onTimerStop;
   final VoidCallback? onScrambleRefresh;
+  final ValueNotifier<int> updateNotifier; // Added
 
   const FullscreenTimerPage({
     super.key,
     required this.logic,
     required this.onTimerStop,
     this.onScrambleRefresh,
+    required this.updateNotifier, // Added
   });
 
   @override
@@ -22,8 +24,6 @@ class _FullscreenTimerPageState extends State<FullscreenTimerPage> {
   void initState() {
     super.initState();
     print('[FullscreenTimerPage] initState');
-
-    // Fix: Schedule refresh AFTER first frame is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.onScrambleRefresh?.call();
       print('[FullscreenTimerPage] Called onScrambleRefresh');
@@ -34,13 +34,10 @@ class _FullscreenTimerPageState extends State<FullscreenTimerPage> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Stop the timer and return to the previous screen
         widget.logic.stop();
-
-        // Send the result back
         final finalMilliseconds = widget.logic.timeNotifier.value;
         widget.onTimerStop?.call(finalMilliseconds);
-
+        widget.updateNotifier.value++; // Added
         Navigator.of(context).pop();
       },
       child: Scaffold(
@@ -52,7 +49,6 @@ class _FullscreenTimerPageState extends State<FullscreenTimerPage> {
               final seconds = (milliseconds / 1000).floor();
               final ms = (milliseconds % 1000) ~/ 10;
               final timeString = '$seconds.${ms.toString().padLeft(2, '0')}';
-
               return Text(
                 timeString,
                 style: const TextStyle(fontSize: 72, color: Colors.white),
