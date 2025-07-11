@@ -20,7 +20,6 @@ class TimerUI extends StatefulWidget {
 }
 
 class _TimerUIState extends State<TimerUI> {
-  final bool _cancelledBySwipe = false;
   bool _isHolding = false;
   bool _primed = false;
   final Duration _holdDuration = const Duration(milliseconds: 300);
@@ -32,15 +31,23 @@ class _TimerUIState extends State<TimerUI> {
     _logic = TimerLogic();
   }
 
+  @override
+  void dispose() {
+    _logic.endTimer(); // Changed to endTimer for cleanup
+    super.dispose();
+  }
+
   void _onTapDown(TapDownDetails details) {
-    _isHolding = true;
-    _primed = false;
+    setState(() {
+      _isHolding = true;
+      _primed = false;
+    });
 
     Future.delayed(_holdDuration, () {
       if (mounted && _isHolding) {
         setState(() {
           _primed = true;
-          _logic.reset(); // reset time to 0.00 when primed
+          _logic.prepareStart(); // Reset and prepare timer
         });
       }
     });
@@ -55,27 +62,26 @@ class _TimerUIState extends State<TimerUI> {
   }
 
   void _handleFingerLift() {
-    _isHolding = false;
-
-    if (_primed) {
-      setState(() => _primed = false);
-
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          fullscreenDialog: true,
-          builder:
-              (_) => FullscreenTimerPage(
-                logic: _logic,
-                onTimerStop: _onTimerStop, // <-- pass callback
-              ),
-        ),
-      );
+    if (!_primed) {
+      setState(() => _isHolding = false);
+      return;
     }
+
+    setState(() => _primed = false);
+    _logic.start(); // Start timer on finger lift
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder:
+            (_) =>
+                FullscreenTimerPage(logic: _logic, onTimerStop: _onTimerStop),
+      ),
+    );
   }
 
-  // This function will be called when the timer stops
   Future<void> _onTimerStop(int milliseconds) async {
-    if (widget.sessionId == null) return; // Don't insert if no session selected
+    if (widget.sessionId == null) return;
 
     await DatabaseHelper.instance.insertSolve(
       sessionId: widget.sessionId!,
@@ -87,7 +93,15 @@ class _TimerUIState extends State<TimerUI> {
       reconstruction: "",
       dateTime: DateTime.now(),
     );
-    // Optionally: setState or show a snackbar/refresh UI here
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Time saved: ${(milliseconds / 1000.0).toStringAsFixed(2)}s',
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -97,13 +111,12 @@ class _TimerUIState extends State<TimerUI> {
       onTapUp: _onTapUp,
       onPanEnd: _onPanEnd,
       child: AspectRatio(
-        aspectRatio: 1, // force a square
+        aspectRatio: 1,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           color: _primed ? Colors.yellow : Colors.grey[400],
           child: Stack(
             children: [
-              // Centered timer text
               Center(
                 child: ValueListenableBuilder<int>(
                   valueListenable: _logic.timeNotifier,
@@ -112,7 +125,6 @@ class _TimerUIState extends State<TimerUI> {
                     final ms = (milliseconds % 1000) ~/ 10;
                     final timeString =
                         '$seconds.${ms.toString().padLeft(2, '0')}';
-
                     return Text(
                       timeString,
                       style: const TextStyle(
@@ -123,8 +135,6 @@ class _TimerUIState extends State<TimerUI> {
                   },
                 ),
               ),
-
-              // Icon row at bottom center
               Align(
                 alignment: Alignment.bottomCenter,
                 child: Padding(
