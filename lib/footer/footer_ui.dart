@@ -42,16 +42,16 @@ class Footer extends StatelessWidget {
               Navigator.pushNamed(context, '/graphs');
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.bar_chart),
-            style: ButtonStyle(
-              backgroundColor: WidgetStateProperty.all(Colors.blue),
-              foregroundColor: WidgetStateProperty.all(Colors.white),
-            ),
-            onPressed: () {
-              Navigator.pushNamed(context, '/stats');
-            },
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.bar_chart),
+          //   style: ButtonStyle(
+          //     backgroundColor: WidgetStateProperty.all(Colors.blue),
+          //     foregroundColor: WidgetStateProperty.all(Colors.white),
+          //   ),
+          //   onPressed: () {
+          //     Navigator.pushNamed(context, '/stats');
+          //   },
+          // ),
         ],
       ),
     );

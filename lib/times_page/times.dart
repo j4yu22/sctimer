@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sctimer/footer/footer_ui.dart';
 import 'package:sctimer/header/header_ui.dart';
+import '../../data/database_helper.dart';
 
 class TimesPage extends StatelessWidget {
   const TimesPage({super.key});
@@ -19,7 +20,7 @@ class TimesPage extends StatelessWidget {
 }
 
 class TimeBlock extends StatelessWidget {
-  late double _time;
+  late String _time;
   late String _comment;
   late String _penalty;
   late String _date;
@@ -33,14 +34,25 @@ class TimeBlock extends StatelessWidget {
   TimeBlock({
     super.key,
     int pk = 0,
-    double time = 0,
+    int time = 0,
     String comment = "",
     String scramble = "",
     int penalty = 0,
     String date = "0/0/0",
     bool dnf = false,
   }) {
-    _time = time;
+    if (time < 1000) {
+      _time = '0' + "." + time.toString();
+    } else if (time > 60000) {
+      int start = (time / 60000).floor();
+      int middle = ((time % 60000) / 1000).floor();
+      int end = (time % 60000) % 1000;
+      _time = start.toString() + ":" + middle.toString() + "." + end.toString();
+    } else {
+      int middle = ((time % 60000) / 1000).floor();
+      int end = (time % 60000) % 1000;
+      _time = middle.toString() + "." + end.toString();
+    }
     _comment = comment;
     if (penalty != 0) {
       penalty = penalty * 2;
@@ -49,7 +61,7 @@ class TimeBlock extends StatelessWidget {
       _penalty = "";
     }
     _scramble = scramble;
-    _date = date;
+    _date = date.replaceRange(10, date.length, '');
     _comment = comment;
     _solveIdPK = pk;
     _dnf = dnf;
@@ -164,346 +176,347 @@ class SliverGridState extends State<SliverGridWidget> {
   final ScrollController scrollController = ScrollController();
   bool isLoading = false;
   final timeBlockList = <TimeBlock>[
-    TimeBlock(
-      penalty: 2,
-      time: 8.31,
-      date: "4/16/2025",
-      scramble:
-          "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U ",
-      comment: "This is a test comment.",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 3.35,
-      date: "4/30/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-      comment:
-          "This is a much longer test comment. This is a much longer test comment. This is a much longer test comment. This is a much longer test comment. This is a much longer test comment. This is a much longer test comment. This is a much longer test comment. This is a much longer test comment. This is a much longer test comment. ",
-    ),
-    TimeBlock(
-      penalty: 1,
-      time: 3.35,
-      date: "4/30/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 9.05,
-      date: "5/05/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 1,
-      time: 15.72,
-      date: "5/07/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 7.99,
-      date: "5/15/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 2,
-      time: 8.31,
-      date: "4/16/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 3.35,
-      date: "4/30/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 1,
-      time: 3.35,
-      date: "4/30/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 9.05,
-      date: "5/05/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 1,
-      time: 15.72,
-      date: "5/07/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 7.99,
-      date: "5/15/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 2,
-      time: 8.31,
-      date: "4/16/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 3.35,
-      date: "4/30/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 1,
-      time: 3.35,
-      date: "4/30/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 9.05,
-      date: "5/05/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 1,
-      time: 15.72,
-      date: "5/07/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 7.99,
-      date: "5/15/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 2,
-      time: 8.31,
-      date: "4/16/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 3.35,
-      date: "4/30/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 1,
-      time: 3.35,
-      date: "4/30/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 9.05,
-      date: "5/05/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 1,
-      time: 15.72,
-      date: "5/07/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 7.99,
-      date: "5/15/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 2,
-      time: 8.31,
-      date: "4/16/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 3.35,
-      date: "4/30/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 1,
-      time: 3.35,
-      date: "4/30/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 9.05,
-      date: "5/05/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 1,
-      time: 15.72,
-      date: "5/07/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 7.99,
-      date: "5/15/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 2,
-      time: 8.31,
-      date: "4/16/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 3.35,
-      date: "4/30/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 1,
-      time: 3.35,
-      date: "4/30/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 9.05,
-      date: "5/05/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 1,
-      time: 15.72,
-      date: "5/07/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 7.99,
-      date: "5/15/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 2,
-      time: 8.31,
-      date: "4/16/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 3.35,
-      date: "4/30/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 1,
-      time: 3.35,
-      date: "4/30/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 9.05,
-      date: "5/05/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 1,
-      time: 15.72,
-      date: "5/07/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 7.99,
-      date: "5/15/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 2,
-      time: 8.31,
-      date: "4/16/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 3.35,
-      date: "4/30/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 1,
-      time: 3.35,
-      date: "4/30/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 9.05,
-      date: "5/05/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 1,
-      time: 15.72,
-      date: "5/07/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 7.99,
-      date: "5/15/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 2,
-      time: 8.31,
-      date: "4/16/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 3.35,
-      date: "4/30/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 1,
-      time: 3.35,
-      date: "4/30/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 9.05,
-      date: "5/05/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 1,
-      time: 15.72,
-      date: "5/07/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
-    TimeBlock(
-      penalty: 0,
-      time: 7.99,
-      date: "5/15/2025",
-      scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
-    ),
+    // TimeBlock(
+    //   penalty: 2,
+    //   time: 8.31,
+    //   date: "4/16/2025",
+    //   scramble:
+    //       "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U ",
+    //   comment: "This is a test comment.",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 3.35,
+    //   date: "4/30/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    //   comment:
+    //       "This is a much longer test comment. This is a much longer test comment. This is a much longer test comment. This is a much longer test comment. This is a much longer test comment. This is a much longer test comment. This is a much longer test comment. This is a much longer test comment. This is a much longer test comment. ",
+    // ),
+    // TimeBlock(
+    //   penalty: 1,
+    //   time: 3.35,
+    //   date: "4/30/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 9.05,
+    //   date: "5/05/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 1,
+    //   time: 15.72,
+    //   date: "5/07/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 7.99,
+    //   date: "5/15/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 2,
+    //   time: 8.31,
+    //   date: "4/16/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 3.35,
+    //   date: "4/30/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 1,
+    //   time: 3.35,
+    //   date: "4/30/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 9.05,
+    //   date: "5/05/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 1,
+    //   time: 15.72,
+    //   date: "5/07/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 7.99,
+    //   date: "5/15/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 2,
+    //   time: 8.31,
+    //   date: "4/16/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 3.35,
+    //   date: "4/30/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 1,
+    //   time: 3.35,
+    //   date: "4/30/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 9.05,
+    //   date: "5/05/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 1,
+    //   time: 15.72,
+    //   date: "5/07/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 7.99,
+    //   date: "5/15/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 2,
+    //   time: 8.31,
+    //   date: "4/16/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 3.35,
+    //   date: "4/30/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 1,
+    //   time: 3.35,
+    //   date: "4/30/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 9.05,
+    //   date: "5/05/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 1,
+    //   time: 15.72,
+    //   date: "5/07/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 7.99,
+    //   date: "5/15/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 2,
+    //   time: 8.31,
+    //   date: "4/16/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 3.35,
+    //   date: "4/30/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 1,
+    //   time: 3.35,
+    //   date: "4/30/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 9.05,
+    //   date: "5/05/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 1,
+    //   time: 15.72,
+    //   date: "5/07/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 7.99,
+    //   date: "5/15/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 2,
+    //   time: 8.31,
+    //   date: "4/16/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 3.35,
+    //   date: "4/30/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 1,
+    //   time: 3.35,
+    //   date: "4/30/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 9.05,
+    //   date: "5/05/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 1,
+    //   time: 15.72,
+    //   date: "5/07/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 7.99,
+    //   date: "5/15/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 2,
+    //   time: 8.31,
+    //   date: "4/16/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 3.35,
+    //   date: "4/30/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 1,
+    //   time: 3.35,
+    //   date: "4/30/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 9.05,
+    //   date: "5/05/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 1,
+    //   time: 15.72,
+    //   date: "5/07/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 7.99,
+    //   date: "5/15/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 2,
+    //   time: 8.31,
+    //   date: "4/16/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 3.35,
+    //   date: "4/30/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 1,
+    //   time: 3.35,
+    //   date: "4/30/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 9.05,
+    //   date: "5/05/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 1,
+    //   time: 15.72,
+    //   date: "5/07/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 7.99,
+    //   date: "5/15/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 2,
+    //   time: 8.31,
+    //   date: "4/16/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 3.35,
+    //   date: "4/30/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 1,
+    //   time: 3.35,
+    //   date: "4/30/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 9.05,
+    //   date: "5/05/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 1,
+    //   time: 15.72,
+    //   date: "5/07/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
+    // TimeBlock(
+    //   penalty: 0,
+    //   time: 7.99,
+    //   date: "5/15/2025",
+    //   scramble: "U B2 L2 R2 D L2 U' B2 R' U2 L' U B F2 R' U' F' U",
+    // ),
   ];
 
   @override
   void initState() {
     super.initState();
+    _loadMoreItems();
 
     scrollController.addListener(() {
       // Check if we are close to the bottom
       if (scrollController.position.pixels >=
               scrollController.position.maxScrollExtent - 200 &&
           !isLoading) {
-        _loadMoreItems();
+        // _loadMoreItems();
       }
     });
   }
@@ -513,28 +526,37 @@ class SliverGridState extends State<SliverGridWidget> {
       isLoading = true;
     });
 
+    List<Map<String, dynamic>> solves = await DatabaseHelper.instance.getSolves(
+      1,
+    );
+    print('Getting solves to display');
+    for (var solve in solves) {
+      print(solve);
+      bool dnf = solve['is_dnf'] != 0;
+      timeBlockList.add(
+        TimeBlock(
+          pk: solve['solve_id'],
+          time: solve['solve_time'],
+          comment: solve['comment'],
+          scramble: solve['scramble'],
+          penalty: solve['plus_two'],
+          date: solve['date_time'],
+          dnf: dnf,
+
+          //       int pk = 0,
+          // double time = 0,
+          // String comment = "",
+          // String scramble = "",
+          // int penalty = 0,
+          // String date = "0/0/0",
+          // bool dnf = false,
+        ),
+      );
+    }
+    // Inside the addAll method is where the new timeblocks should be added
+    timeBlockList.addAll([]);
+
     setState(() {
-      // Inside the addAll method is where the new timeblocks should be added
-      timeBlockList.addAll([
-        TimeBlock(
-          penalty: 1,
-          time: 1.07,
-          date: "11/11/2125",
-          scramble: "R2 L2 R2 L2 R2 L2",
-        ),
-        TimeBlock(
-          penalty: 0,
-          time: 2.05,
-          date: "11/11/2125",
-          scramble: "R2 L2 R2 L2 R2 L2",
-        ),
-        TimeBlock(
-          penalty: 0,
-          time: 2.35,
-          date: "11/11/2125",
-          scramble: "R2 L2 R2 L2 R2 L2 F2",
-        ),
-      ]);
       isLoading = false;
     });
   }

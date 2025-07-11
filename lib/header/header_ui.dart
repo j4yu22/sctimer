@@ -256,7 +256,7 @@ class _HeaderUIState extends State<HeaderUI> {
                     icon: const Icon(Icons.settings),
                     iconSize: 28,
                     onPressed: () {
-                      Navigator.pushNamed(context, '/settings');
+                      // Navigator.pushNamed(context, '/settings');
                     },
                   ),
                   Expanded(
