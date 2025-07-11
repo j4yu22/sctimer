@@ -16,6 +16,14 @@ class _HomePageState extends State<HomePage> {
   bool _showFullscreenTimer = false;
   int? _selectedSessionId; // <-- already present
 
+  final GlobalKey<ScrambleUIWidget> _scrambleKey =
+      GlobalKey<ScrambleUIWidget>();
+
+  void _handleScrambleRefresh() {
+    print('[HomePage] _handleScrambleRefresh called');
+    _scrambleKey.currentState?.refreshScramble();
+  }
+
   void _setFullscreen(bool value) {
     setState(() {
       _showFullscreenTimer = value;
@@ -42,11 +50,12 @@ class _HomePageState extends State<HomePage> {
                     selectedSessionId: _selectedSessionId,
                     onSessionChanged: _onSessionChanged,
                   ),
-                  ScrambleUI(),
+                  ScrambleUI(key: _scrambleKey),
                   Expanded(
                     child: TimerUI(
                       sessionId: _selectedSessionId, // <-- pass sessionId here
                       onFullscreenChange: _setFullscreen,
+                      onScrambleRefresh: _handleScrambleRefresh,
                     ),
                   ),
                   TimeDisplayUI(),
@@ -60,6 +69,7 @@ class _HomePageState extends State<HomePage> {
                     sessionId:
                         _selectedSessionId, // <-- pass sessionId here too
                     onFullscreenChange: _setFullscreen,
+                    onScrambleRefresh: _handleScrambleRefresh,
                   ),
                 ),
             ],

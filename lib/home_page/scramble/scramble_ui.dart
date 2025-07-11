@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'scramble_logic.dart';
+import 'package:flutter/services.dart';
 
 class ScrambleUI extends StatefulWidget {
   const ScrambleUI({super.key});
@@ -9,10 +10,28 @@ class ScrambleUI extends StatefulWidget {
 }
 
 class ScrambleUIWidget extends State<ScrambleUI> {
-  late final String _scramble = GetNewScramble();
+  late String _scramble;
 
-  String GetNewScramble() {
-    return "";
+  String getNewScramble() {
+    return getRandomScramble();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _scramble = getRandomScramble();
+    print('[ScrambleUI] Initial scramble: $_scramble');
+  }
+
+  void refreshScramble() {
+    print('[ScrambleUI] refreshScramble() was called');
+    setState(() {
+      _scramble = getRandomScramble();
+    });
+  }
+
+  void _copyToClipboard() {
+    Clipboard.setData(ClipboardData(text: _scramble));
   }
 
   @override
@@ -25,21 +44,33 @@ class ScrambleUIWidget extends State<ScrambleUI> {
       child: Row(
         children: [
           // Copy icon (left)
-          Icon(Icons.copy, size: 20, color: Colors.black87),
+          GestureDetector(
+            onTap: _copyToClipboard,
+            child: const Icon(Icons.copy, size: 20, color: Colors.black87),
+          ),
 
           const SizedBox(width: 8),
 
           // Scramble text (center)
           Expanded(
-            child: Text(
-              _scramble,
-              style: TextStyle(fontSize: 14),
-              overflow: TextOverflow.visible,
+            child: Center(
+              child: Text(
+                _scramble,
+                style: const TextStyle(fontSize: 14),
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.visible,
+              ),
             ),
           ),
-
           // Refresh icon (right)
-          Icon(Icons.refresh, size: 20, color: Colors.black87),
+          IconButton(
+            icon: const Icon(Icons.refresh, size: 20, color: Colors.black87),
+            onPressed: () {
+              setState(() {
+                _scramble = getRandomScramble();
+              });
+            },
+          ),
         ],
       ),
     );

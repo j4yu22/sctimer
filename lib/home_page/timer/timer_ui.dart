@@ -6,13 +6,15 @@ import 'fullscreen_timer.dart';
 class TimerUI extends StatefulWidget {
   final bool isFullscreen;
   final void Function(bool)? onFullscreenChange;
-  final int? sessionId; // <-- add this
+  final int? sessionId;
+  final VoidCallback? onScrambleRefresh;
 
   const TimerUI({
     super.key,
     this.isFullscreen = false,
     this.onFullscreenChange,
-    this.sessionId, // <-- add this
+    this.sessionId,
+    this.onScrambleRefresh,
   });
 
   @override
@@ -64,18 +66,22 @@ class _TimerUIState extends State<TimerUI> {
   void _handleFingerLift() {
     if (!_primed) {
       setState(() => _isHolding = false);
+      widget.onScrambleRefresh?.call();
       return;
     }
 
     setState(() => _primed = false);
-    _logic.start(); // Start timer on finger lift
+    _logic.start();
 
     Navigator.of(context).push(
       MaterialPageRoute(
         fullscreenDialog: true,
         builder:
-            (_) =>
-                FullscreenTimerPage(logic: _logic, onTimerStop: _onTimerStop),
+            (_) => FullscreenTimerPage(
+              logic: _logic,
+              onTimerStop: _onTimerStop,
+              onScrambleRefresh: widget.onScrambleRefresh,
+            ),
       ),
     );
   }
