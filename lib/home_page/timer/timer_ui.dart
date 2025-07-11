@@ -153,7 +153,7 @@ class _TimerUIState extends State<TimerUI> {
                     return Text(
                       timeString,
                       style: const TextStyle(
-                        fontSize: 32,
+                        fontSize: 50,
                         color: Colors.black87,
                       ),
                     );

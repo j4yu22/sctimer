@@ -19,7 +19,7 @@ class TimeDisplayUI extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 80,
+            width: 250,
             color: Colors.grey[300],
             padding: const EdgeInsets.all(6),
             child: const Column(
@@ -77,7 +77,7 @@ class TimeDisplayUI extends StatelessWidget {
                                 final seconds = (time / 1000).floor();
                                 final ms = (time % 1000) ~/ 10;
                                 var timeString =
-                                    '$seconds.${ms.toString().padLeft(2, '0')}s';
+                                    '$seconds.${ms.toString().padLeft(2, '0')}';
                                 if (isDnf) timeString = 'DNF';
                                 if (plusTwo > 0) timeString += ' (+2)';
                                 return timeString;
