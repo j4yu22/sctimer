@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'scramble_logic.dart';
 
 class ScrambleUI extends StatefulWidget {
   const ScrambleUI({super.key});
