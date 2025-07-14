@@ -42,16 +42,16 @@ class TimeBlock extends StatelessWidget {
     bool dnf = false,
   }) {
     if (time < 1000) {
-      _time = '0' + "." + time.toString();
+      _time = '0' "." + time.toString();
     } else if (time > 60000) {
       int start = (time / 60000).floor();
       int middle = ((time % 60000) / 1000).floor();
       int end = (time % 60000) % 1000;
-      _time = start.toString() + ":" + middle.toString() + "." + end.toString();
+      _time = "$start:$middle.$end";
     } else {
       int middle = ((time % 60000) / 1000).floor();
       int end = (time % 60000) % 1000;
-      _time = middle.toString() + "." + end.toString();
+      _time = "$middle.$end";
     }
     _comment = comment;
     if (penalty != 0) {
