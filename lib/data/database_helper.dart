@@ -120,8 +120,8 @@ class DatabaseHelper {
     // Insert puzzles if empty
     final puzzleCount = await db.query('puzzle');
     if (puzzleCount.isEmpty) {
-      await db.insert('puzzle', {'puzzle_id': 1, 'puzzle_name': '3x3 Cube'});
-      await db.insert('puzzle', {'puzzle_id': 2, 'puzzle_name': '2x2 Cube'});
+      await db.insert('puzzle', {'puzzle_id': 1, 'puzzle_name': '3x3'});
+      await db.insert('puzzle', {'puzzle_id': 2, 'puzzle_name': '2x2'});
       print('Inserted default puzzles');
     }
 
@@ -156,7 +156,7 @@ class DatabaseHelper {
     if (sessionCount.isEmpty) {
       await db.insert('session', {
         'puzzle_id': 1,
-        'session_name': 'Default 3x3',
+        'session_name': '3x3',
         'scramble_type_id': 1,
       });
       print('Inserted default session');

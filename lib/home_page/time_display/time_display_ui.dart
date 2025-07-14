@@ -40,9 +40,6 @@ class TimeDisplayUI extends StatelessWidget {
                     child: ValueListenableBuilder<int>(
                       valueListenable: updateNotifier,
                       builder: (context, _, __) {
-                        print(
-                          'TimeDisplayUI: Update triggered for sessionId = $sessionId',
-                        );
                         return FutureBuilder<List<Map<String, dynamic>>>(
                           future: DatabaseHelper.instance.getSolves(
                             sessionId ?? 0,
@@ -50,52 +47,42 @@ class TimeDisplayUI extends StatelessWidget {
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
-                              print('TimeDisplayUI: Loading solves');
                               return const Center(
                                 child: CircularProgressIndicator(),
                               );
                             }
                             if (snapshot.hasError) {
-                              print(
-                                'TimeDisplayUI: Error fetching solves: ${snapshot.error}',
-                              );
                               return const Text(
                                 'Error loading times',
                                 style: TextStyle(fontSize: 12),
                               );
                             }
                             final solves = snapshot.data ?? [];
-                            print(
-                              'TimeDisplayUI: Fetched ${solves.length} solves for sessionId = $sessionId',
-                            );
-                            final displayList = List.generate(5, (index) {
-                              if (index < solves.length) {
-                                final solve = solves[index];
-                                final time = solve['solve_time'] as int;
-                                final isDnf = solve['is_dnf'] == 1;
-                                final plusTwo = solve['plus_two'] as int;
-                                final seconds = (time / 1000).floor();
-                                final ms = (time % 1000) ~/ 10;
-                                var timeString =
-                                    '$seconds.${ms.toString().padLeft(2, '0')}';
-                                if (isDnf) timeString = 'DNF';
-                                if (plusTwo > 0) timeString += ' (+2)';
-                                return timeString;
-                              }
-                              return 'N/A';
-                            });
+                            if (solves.isEmpty) {
+                              return const Text(
+                                'No solves yet.',
+                                style: TextStyle(fontSize: 12),
+                              );
+                            }
                             return ListView.builder(
-                              itemCount: displayList.length,
-                              itemBuilder:
-                                  (context, index) => Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 2,
-                                    ),
-                                    child: Text(
-                                      displayList[index],
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
+                              itemCount: solves.length,
+                              itemBuilder: (context, index) {
+                                final solve = solves[index];
+                                final milliseconds = solve['solve_time'] as int;
+                                final seconds = (milliseconds / 1000).floor();
+                                final ms = (milliseconds % 1000) ~/ 10;
+                                final timeString =
+                                    '$seconds.${ms.toString().padLeft(2, '0')}';
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 2,
                                   ),
+                                  child: Text(
+                                    timeString,
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                );
+                              },
                             );
                           },
                         );

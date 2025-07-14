@@ -5,7 +5,14 @@ import '/data/database_helper.dart';
 class HeaderUI extends StatefulWidget {
   final int? selectedSessionId;
   final Function(int?)? onSessionChanged;
-  const HeaderUI({super.key, this.selectedSessionId, this.onSessionChanged});
+  final Function(int?)? onScrambleTypeChanged; // <-- Add this line
+
+  const HeaderUI({
+    super.key,
+    this.selectedSessionId,
+    this.onSessionChanged,
+    this.onScrambleTypeChanged, // <-- Add this line
+  });
 
   @override
   _HeaderUIState createState() => _HeaderUIState();
@@ -210,6 +217,11 @@ class _HeaderUIState extends State<HeaderUI> {
     required int? value,
     required Function(int?) onChanged,
   }) {
+    // Ensure value is valid
+    final validValues = items.map((item) => item[valueKey] as int).toSet();
+    final dropdownValue =
+        (value != null && validValues.contains(value)) ? value : null;
+
     return Container(
       height: 36,
       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -217,11 +229,10 @@ class _HeaderUIState extends State<HeaderUI> {
         border: Border.all(),
         borderRadius: BorderRadius.circular(6),
       ),
-      // Constrain the width of the dropdown
-      constraints: const BoxConstraints(maxWidth: 110), // Adjust as needed
+      constraints: const BoxConstraints(maxWidth: 110),
       child: DropdownButton<int>(
-        isExpanded: true, // Forces the button to fill available width
-        value: value,
+        isExpanded: true,
+        value: dropdownValue,
         hint: Text(label, overflow: TextOverflow.ellipsis, softWrap: false),
         icon: const Icon(Icons.arrow_drop_down),
         underline: const SizedBox(),
@@ -239,6 +250,41 @@ class _HeaderUIState extends State<HeaderUI> {
         onChanged: items.isNotEmpty ? onChanged : null,
       ),
     );
+  }
+
+  Future<void> _onPuzzleChanged(int puzzleId) async {
+    setState(() => _selectedPuzzleId = puzzleId);
+
+    // Load sessions for this puzzle
+    final sessions = await DatabaseHelper.instance.getSessionsByPuzzle(
+      puzzleId,
+    );
+    int? defaultSessionId;
+    if (sessions.isNotEmpty) {
+      final defaultSession = sessions.firstWhere(
+        (s) => (s['session_name'] as String).toLowerCase() == 'default',
+        orElse: () => sessions.first,
+      );
+      defaultSessionId = defaultSession['session_id'] as int;
+    }
+    setState(() => _selectedSessionId = defaultSessionId);
+
+    // Load scramble types for this puzzle
+    final scrambleTypes = await DatabaseHelper.instance
+        .getScrambleTypesByPuzzle(puzzleId);
+    int? wcaScrambleTypeId;
+    if (scrambleTypes.isNotEmpty) {
+      final wcaType = scrambleTypes.firstWhere(
+        (t) => (t['scramble_type_name'] as String).toUpperCase() == 'WCA',
+        orElse: () => scrambleTypes.first,
+      );
+      wcaScrambleTypeId = wcaType['scramble_type_id'] as int;
+    }
+    setState(() => _selectedScrambleTypeId = wcaScrambleTypeId);
+
+    // Notify parent widget (HomePage) of session change
+    widget.onSessionChanged?.call(_selectedSessionId);
+    widget.onScrambleTypeChanged?.call(_selectedScrambleTypeId);
   }
 
   @override

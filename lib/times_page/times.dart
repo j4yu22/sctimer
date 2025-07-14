@@ -42,7 +42,10 @@ class TimeBlock extends StatelessWidget {
     bool dnf = false,
   }) {
     if (time < 1000) {
-      _time = '0' "." + time.toString();
+      _time =
+          '0'
+              "." +
+          time.toString();
     } else if (time > 60000) {
       int start = (time / 60000).floor();
       int middle = ((time % 60000) / 1000).floor();
